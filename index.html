@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- html2canvas for downloading the pass as an image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -152,11 +154,6 @@
                 mask-position: top, bottom;
             }
         }
-        
-        /* Fake barcode pattern */
-        .fake-barcode {
-            background: repeating-linear-gradient(to right, #ffffff 0, #ffffff 2px, transparent 2px, transparent 5px, #ffffff 5px, #ffffff 6px, transparent 6px, transparent 10px, #ffffff 10px, #ffffff 14px, transparent 14px, transparent 16px);
-        }
     </style>
 </head>
 <body class="bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative">
@@ -185,7 +182,7 @@
             </p>
 
             <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-5 max-w-xl">
-                <!-- Grid for Date/Time/Eligibility -->
+                <!-- Grid for Date/Time/Eligibility/Price -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div class="flex items-start gap-3.5">
                         <i class="ph ph-calendar-blank text-2xl text-gold mt-0.5"></i>
@@ -203,11 +200,19 @@
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3.5 sm:col-span-2">
+                    <div class="flex items-start gap-3.5">
+                        <i class="ph ph-currency-inr text-2xl text-gold mt-0.5"></i>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Pass Fee</p>
+                            <p class="font-medium text-white">₹1,250 INR</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3.5">
                         <i class="ph ph-seal-check text-2xl text-gold mt-0.5"></i>
                         <div>
                             <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Guest List</p>
-                            <p class="font-medium text-white">Exclusive to Physics Students</p>
+                            <p class="font-medium text-white">Physics Students</p>
                         </div>
                     </div>
                 </div>
@@ -254,10 +259,13 @@
                             <i class="ph ph-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
                             <select id="class" required class="w-full pl-11 pr-10 py-3 sm:py-3.5 rounded-xl appearance-none text-white">
                                 <option value="" disabled selected class="text-gray-500">Select Year</option>
-                                <option value="B.Sc. 3rd Year">B.Sc. 3rd Year</option>
-                                <option value="B.Sc. (Hons) 3rd Year">B.Sc. (Hons) 3rd Year</option>
-                                <option value="M.Sc. 2nd Year">M.Sc. 2nd Year</option>
-                                <option value="Ph.D. Scholar">Ph.D. Scholar</option>
+                                <option value="MSc FYIP I">MSc FYIP I</option>
+                                <option value="MSc FYIP II">MSc FYIP II</option>
+                                <option value="MSc FYIP III">MSc FYIP III</option>
+                                <option value="MSc FYIP IV">MSc FYIP IV</option>
+                                <option value="MSc FYIP V">MSc FYIP V</option>
+                                <option value="MSc TYIP I">MSc TYIP I</option>
+                                <option value="MSc TYIP II">MSc TYIP II</option>
                             </select>
                             <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"></i>
                         </div>
@@ -312,10 +320,16 @@
             </button>
             
             <h3 class="font-serif text-2xl sm:text-3xl font-bold mb-2 text-white">Secure Your Pass</h3>
-            <p class="text-gray-400 text-sm mb-6">Scan the code below to finalize your VIP pass.</p>
+            <p class="text-gray-400 text-sm mb-4">Scan the code below to finalize your VIP pass.</p>
+
+            <div class="text-center mb-6">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Amount Payable</p>
+                <p class="font-serif text-4xl font-bold text-gold">₹1,250 <span class="text-sm font-sans text-gray-400 font-normal">INR</span></p>
+            </div>
             
             <div class="bg-white p-3 sm:p-4 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(212,175,55,0.15)] ring-1 ring-gold/20">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=physicsdepartment@upi&pn=Physics%20Farewell" alt="QR Code" class="w-32 h-32 sm:w-40 sm:h-40">
+                <!-- Added &am=1250 to auto-fill the amount when scanned in UPI Apps -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=physicsdepartment@upi&pn=Physics%20Farewell&am=1250&cu=INR" alt="QR Code" class="w-32 h-32 sm:w-40 sm:h-40">
             </div>
 
             <form id="paymentForm" class="space-y-5 text-left w-full">
@@ -383,15 +397,15 @@
                         </div>
                     </div>
                     
-                    <!-- Passenger Info Grid -->
+                    <!-- Passenger Info Grid (Removed 'truncate' to fix PDF/PNG clipping) -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4 mb-2 md:mb-0">
                         <div class="col-span-2">
                             <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Passenger Name</p>
-                            <p id="passName" class="font-medium text-lg sm:text-xl text-white uppercase tracking-wider truncate">JOHN DOE</p>
+                            <p id="passName" class="font-medium text-lg sm:text-xl text-white uppercase tracking-wider break-words">JOHN DOE</p>
                         </div>
                         <div class="col-span-2">
                             <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Designation</p>
-                            <p id="passClass" class="font-medium text-base sm:text-lg text-white uppercase truncate">B.Sc. 3rd Year</p>
+                            <p id="passClass" class="font-medium text-base sm:text-lg text-white uppercase break-words">B.Sc. 3rd Year</p>
                         </div>
                         
                         <div>
@@ -436,19 +450,32 @@
                 <div class="w-full text-center md:text-left">
                     <p id="ticketIdMobile" class="font-mono text-gold text-sm tracking-widest md:hidden mb-5">PHY-2026</p>
                     
-                    <!-- Fake Barcode Element -->
-                    <div class="h-10 w-full fake-barcode hidden md:block opacity-30 mb-3"></div>
+                    <!-- Solid SVG Barcode ensures perfect rendering in html2canvas -->
+                    <svg class="h-10 w-full hidden md:block opacity-40 mb-3 text-white" preserveAspectRatio="none" viewBox="0 0 200 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h4v40H0zM6 0h2v40H6zM10 0h6v40h-6zM18 0h2v40h-2zM24 0h4v40h-4zM30 0h2v40h-2zM34 0h6v40h-6zM42 0h2v40h-2zM46 0h8v40h-8zM58 0h2v40h-2zM62 0h4v40h-4zM68 0h2v40h-2zM74 0h6v40h-6zM82 0h2v40h-2zM86 0h4v40h-4zM92 0h2v40h-2zM96 0h6v40h-6zM104 0h2v40h-2zM110 0h8v40h-8zM120 0h2v40h-2zM124 0h4v40h-4zM130 0h2v40h-2zM134 0h6v40h-6zM142 0h2v40h-2zM146 0h4v40h-4zM152 0h2v40h-2zM156 0h6v40h-6zM164 0h2v40h-2zM168 0h8v40h-8zM178 0h2v40h-2zM182 0h4v40h-4zM188 0h2v40h-2zM192 0h8v40h-8z" />
+                    </svg>
                     
                     <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] w-full text-center font-semibold">Admit One</p>
                 </div>
             </div>
         </div>
         
+        <!-- Fancy Group Message -->
+        <div class="mt-6 mb-4 text-center animate-fade-in max-w-md px-4">
+            <p class="font-serif text-gold text-lg sm:text-xl italic mb-1">Your presence is highly anticipated.</p>
+            <p class="text-gray-400 text-xs sm:text-sm">You shall be formally escorted into the exclusive guest communications channel shortly.</p>
+        </div>
+
         <!-- Outside Ticket Actions -->
-        <button onclick="closeSuccessModal()" class="mt-auto md:mt-6 bg-transparent hover:bg-gold/10 border border-gold text-gold font-medium py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2 mb-8 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-            <i class="ph ph-download-simple text-lg"></i>
-            Save / Close Pass
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-auto md:mt-4 mb-8">
+            <button onclick="downloadPassAsPNG()" class="bg-gold hover:bg-gold-light text-dark-bg font-bold py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]">
+                <i class="ph ph-download-simple text-lg"></i>
+                Download Pass (PNG)
+            </button>
+            <button onclick="closeSuccessModal()" class="bg-transparent hover:bg-white/5 border border-white/20 text-white font-medium py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2">
+                Close
+            </button>
+        </div>
     </div>
 
     <!-- Script for Particle Background & Form Handling -->
@@ -509,6 +536,125 @@
             setTimeout(() => {
                 successModal.style.visibility = 'hidden';
             }, 500);
+        }
+
+        window.downloadPassAsPNG = function() {
+            const originalElement = document.querySelector('.ticket-container');
+            
+            // Create an off-screen container for precise desktop rendering
+            const printContainer = document.createElement('div');
+            // Hide it deeply behind everything instead of clipping off-screen 
+            // to avoid clipping bugs with html2canvas viewport rendering
+            printContainer.style.position = 'fixed';
+            printContainer.style.top = '0';
+            printContainer.style.left = '0';
+            printContainer.style.zIndex = '-100'; 
+            printContainer.style.width = '850px';
+            printContainer.style.backgroundColor = '#0a0a0a';
+            printContainer.style.padding = '20px';
+            printContainer.style.display = 'flex';
+            printContainer.style.justifyContent = 'center';
+            printContainer.style.alignItems = 'center';
+
+            // Clone the ticket to manipulate without breaking the UI the user sees
+            const clone = originalElement.cloneNode(true);
+            
+            // 1. Remove the mask class which causes black voids in html2canvas
+            clone.classList.remove('ticket-container');
+            clone.classList.add('rounded-2xl', 'border', 'border-white/10', 'overflow-hidden');
+            
+            // 2. Force desktop layout dimensions
+            clone.style.display = 'flex';
+            clone.style.flexDirection = 'row';
+            clone.style.width = '810px';
+            clone.style.minWidth = '810px';
+            clone.style.height = 'auto';
+            clone.style.minHeight = '320px';
+
+            // 3. Fix segments widths
+            if (clone.children[0]) { // Main Segment
+                clone.children[0].style.width = '580px';
+                clone.children[0].style.minWidth = '580px';
+                clone.children[0].classList.remove('w-full', 'md:w-[72%]');
+            }
+            if (clone.children[1]) { // Divider Segment
+                const div = clone.children[1];
+                div.style.width = '2px';
+                div.style.minWidth = '2px';
+                div.style.height = '100%';
+                div.style.backgroundColor = '#0f0f0f'; // blend it
+                div.classList.remove('w-full', 'md:w-0', 'h-0', 'md:h-full');
+                
+                const line = div.children[0];
+                if (line) {
+                    line.classList.remove('w-[calc(100%-30px)]', 'md:w-0', 'h-0', 'md:h-[calc(100%-30px)]', 'border-t-[3px]', 'md:border-t-0');
+                    line.style.width = '0px';
+                    line.style.height = 'calc(100% - 30px)';
+                    line.style.borderTop = 'none';
+                    line.style.borderLeft = '3px dotted rgba(255,255,255,0.2)';
+                }
+            }
+            if (clone.children[2]) { // Stub Segment
+                clone.children[2].style.width = '200px';
+                clone.children[2].style.minWidth = '200px';
+                clone.children[2].style.display = 'flex';
+                clone.children[2].style.flexDirection = 'column';
+                clone.children[2].style.justifyContent = 'space-between';
+                clone.children[2].classList.remove('w-full', 'md:w-[28%]');
+            }
+
+            // 4. Resolve responsive visibility classes explicitly
+            clone.querySelectorAll('.md\\:block').forEach(el => el.style.display = 'block');
+            clone.querySelectorAll('.md\\:flex').forEach(el => {
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'space-between';
+            });
+            clone.querySelectorAll('.md\\:hidden').forEach(el => el.style.display = 'none');
+
+            // 5. Fix text clipping (html2canvas font metric bug)
+            clone.querySelectorAll('p').forEach(p => {
+                // Add a tiny bit of padding to prevent descenders (bottom of letters) from cutting off
+                p.style.paddingBottom = '4px'; 
+                p.style.lineHeight = '1.2';
+            });
+
+            printContainer.appendChild(clone);
+            document.body.appendChild(printContainer);
+
+            // UI Loading state
+            const btn = document.querySelector('button[onclick="downloadPassAsPNG()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-lg"></i> Generating PNG...';
+            btn.disabled = true;
+
+            // Wait for fonts to be ready and give the DOM a tiny fraction of a second to render
+            document.fonts.ready.then(() => {
+                setTimeout(() => {
+                    html2canvas(printContainer, { 
+                        scale: 3, // Increased scale for crisp text
+                        useCORS: true, 
+                        backgroundColor: '#0a0a0a',
+                        logging: false
+                    }).then((canvas) => {
+                        const link = document.createElement('a');
+                        link.download = `Grand_Bash_Pass_${document.getElementById('ticketId').textContent}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        document.body.removeChild(printContainer);
+                    }).catch(err => {
+                        console.error("PNG generation failed:", err);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        if(document.body.contains(printContainer)) {
+                            document.body.removeChild(printContainer);
+                        }
+                    });
+                }, 150);
+            });
         }
 
         // Step 1: Open Payment Modal
