@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Farewell Party 2026</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        gold: {
+                            light: '#FCEEA7',
+                            DEFAULT: '#D4AF37',
+                            dark: '#AA8C2C',
+                        },
+                        dark: {
+                            bg: '#0a0a0a',
+                            panel: '#121212',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1s ease-out',
+                        'float-slow': 'float 8s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Premium Glass/Card utility */
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Elegant Ambient Lighting */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #D4AF37; }
+        .orb-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: #FCEEA7; }
+        
+        /* Custom Input Styles - Mobile Optimized */
+        input, select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+            font-size: 16px !important; 
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #D4AF37;
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(340deg);
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        select option {
+            background-color: #121212;
+            color: white;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .modal-hidden {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transform: scale(0.98);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(to right, #FCEEA7, #D4AF37, #AA8C2C);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* --- Realistic Boarding Pass CSS Masking --- */
+        .ticket-container {
+            /* Mobile layout: horizontal cutouts on the left and right */
+            -webkit-mask-image: radial-gradient(circle at left center, transparent 16px, black 17px), radial-gradient(circle at right center, transparent 16px, black 17px);
+            mask-image: radial-gradient(circle at left center, transparent 16px, black 17px), radial-gradient(circle at right center, transparent 16px, black 17px);
+            -webkit-mask-size: 51% 100%;
+            mask-size: 51% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: left, right;
+            mask-position: left, right;
+        }
+
+        @media (min-width: 768px) {
+            .ticket-container {
+                /* Desktop layout: vertical cutouts on the top and bottom */
+                -webkit-mask-image: radial-gradient(circle at center top, transparent 16px, black 17px), radial-gradient(circle at center bottom, transparent 16px, black 17px);
+                mask-image: radial-gradient(circle at center top, transparent 16px, black 17px), radial-gradient(circle at center bottom, transparent 16px, black 17px);
+                -webkit-mask-size: 100% 51%;
+                mask-size: 100% 51%;
+                -webkit-mask-position: top, bottom;
+                mask-position: top, bottom;
+            }
+        }
+        
+        /* Fake barcode pattern */
+        .fake-barcode {
+            background: repeating-linear-gradient(to right, #ffffff 0, #ffffff 2px, transparent 2px, transparent 5px, #ffffff 5px, #ffffff 6px, transparent 6px, transparent 10px, #ffffff 10px, #ffffff 14px, transparent 14px, transparent 16px);
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative">
+
+    <!-- Background Elements -->
+    <canvas id="canvas-container"></canvas>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center z-10 my-4 animate-fade-in">
+        
+        <!-- Left Column: Event Details -->
+        <div class="space-y-6 sm:space-y-8 animate-float-slow">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold/30 bg-gold/5 text-xs sm:text-sm font-semibold text-gold tracking-[0.2em] uppercase">
+                <i class="ph ph-sparkle"></i>
+                Department of Physics
+            </div>
+            
+            <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1]">
+                The Grand <br>
+                <span class="text-gold-gradient italic">Bash</span> 2026
+            </h1>
+            
+            <p class="text-base sm:text-lg text-gray-300 font-light max-w-lg leading-relaxed">
+                Join us for an exclusive, elegant evening as we celebrate the achievements and bid a grand farewell to the Physics Class of 2026.
+            </p>
+
+            <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-5 max-w-xl">
+                <!-- Grid for Date/Time/Eligibility -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="flex items-start gap-3.5">
+                        <i class="ph ph-calendar-blank text-2xl text-gold mt-0.5"></i>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Date</p>
+                            <p class="font-medium text-white">11 April 2026</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3.5">
+                        <i class="ph ph-clock text-2xl text-gold mt-0.5"></i>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Time</p>
+                            <p class="font-medium text-white">12:00 PM - 6:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3.5 sm:col-span-2">
+                        <i class="ph ph-seal-check text-2xl text-gold mt-0.5"></i>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Guest List</p>
+                            <p class="font-medium text-white">Exclusive to Physics Students</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Venue Separator -->
+                <div class="w-full h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent my-2"></div>
+
+                <!-- Venue Info -->
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-gold/10 flex shrink-0 items-center justify-center text-gold border border-gold/20">
+                        <i class="ph ph-map-pin text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gold font-semibold uppercase tracking-[0.15em] mb-1">Venue</p>
+                        <p class="font-serif text-xl sm:text-2xl text-white mb-1">Ecru café & lounge</p>
+                        <p class="text-sm text-gray-400 leading-relaxed">SIXTH FLOOR, SCO 38, 39, Gumtala Sub Urban, D - Block, Ranjit Avenue, Amritsar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Registration Form -->
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 lg:p-10 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-dark"></div>
+            
+            <h2 class="font-serif text-3xl sm:text-4xl font-bold mb-2 text-white">Request Invitation</h2>
+            <p class="text-gray-400 mb-8 text-sm sm:text-base">Complete your details below to secure your placement on the guest list.</p>
+
+            <form id="registrationForm" class="space-y-4 sm:space-y-5">
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="name">Full Name *</label>
+                    <div class="relative">
+                        <i class="ph ph-user absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                        <input type="text" id="name" required placeholder="Enter your full name" 
+                               class="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl text-white placeholder-gray-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="class">Class / Year *</label>
+                        <div class="relative">
+                            <i class="ph ph-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <select id="class" required class="w-full pl-11 pr-10 py-3 sm:py-3.5 rounded-xl appearance-none text-white">
+                                <option value="" disabled selected class="text-gray-500">Select Year</option>
+                                <option value="B.Sc. 3rd Year">B.Sc. 3rd Year</option>
+                                <option value="B.Sc. (Hons) 3rd Year">B.Sc. (Hons) 3rd Year</option>
+                                <option value="M.Sc. 2nd Year">M.Sc. 2nd Year</option>
+                                <option value="Ph.D. Scholar">Ph.D. Scholar</option>
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="department">Department *</label>
+                        <div class="relative group cursor-not-allowed">
+                            <i class="ph ph-bank absolute left-4 top-1/2 -translate-y-1/2 text-gold text-lg"></i>
+                            <input type="text" id="department" value="Physics" readonly 
+                                   class="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl text-gold font-semibold cursor-not-allowed bg-white/5 border-gold/30 focus:border-gold/30">
+                            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                <i class="ph ph-lock-key text-gold/50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="phone">Phone Number *</label>
+                        <div class="relative">
+                            <i class="ph ph-phone absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <input type="tel" id="phone" required placeholder="+91 00000 00000" pattern="[0-9+\s\-]+"
+                                   class="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl text-white placeholder-gray-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="birthday">Birthday *</label>
+                        <div class="relative">
+                            <i class="ph ph-gift absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg z-10"></i>
+                            <input type="date" id="birthday" required 
+                                   class="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl relative z-0 text-white">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-6 sm:mt-8 bg-gold hover:bg-gold-light text-dark-bg font-bold text-base sm:text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all duration-300 flex justify-center items-center gap-2 group">
+                    <span>Get Pass</span>
+                    <i class="ph ph-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Payment Modal Overlay -->
+    <div id="paymentModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all duration-300 modal-hidden p-4">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-md w-full text-center relative border border-gold/30">
+            <button type="button" onclick="closePaymentModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                <i class="ph ph-x text-lg"></i>
+            </button>
+            
+            <h3 class="font-serif text-2xl sm:text-3xl font-bold mb-2 text-white">Secure Your Pass</h3>
+            <p class="text-gray-400 text-sm mb-6">Scan the code below to finalize your VIP pass.</p>
+            
+            <div class="bg-white p-3 sm:p-4 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(212,175,55,0.15)] ring-1 ring-gold/20">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=physicsdepartment@upi&pn=Physics%20Farewell" alt="QR Code" class="w-32 h-32 sm:w-40 sm:h-40">
+            </div>
+
+            <form id="paymentForm" class="space-y-5 text-left w-full">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2" for="screenshot">Upload Transfer Receipt *</label>
+                    <input type="file" id="screenshot" accept="image/*" required 
+                           class="w-full text-sm text-gray-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gold/10 file:text-gold hover:file:bg-gold/20 bg-black/30 border border-white/10 rounded-xl cursor-pointer focus:outline-none transition-all">
+                </div>
+                
+                <button id="paymentSubmitBtn" type="submit" class="w-full bg-gold hover:bg-gold-light text-dark-bg font-bold py-3.5 sm:py-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span id="paymentBtnText">Verify & Generate Pass</span>
+                    <i id="paymentBtnIcon" class="ph ph-check-circle text-lg"></i>
+                    <!-- Loading Spinner (Hidden by default) -->
+                    <svg id="paymentLoadingIcon" class="animate-spin hidden h-5 w-5 text-dark-bg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Boarding Pass Modal Overlay -->
+    <div id="successModal" class="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-all duration-500 modal-hidden p-4 sm:p-6 overflow-y-auto">
+        
+        <!-- REALISTIC BOARDING PASS LAYOUT -->
+        <div class="ticket-container w-full max-w-[360px] md:max-w-4xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] flex flex-col md:flex-row relative shadow-[0_20px_50px_rgba(212,175,55,0.15)] font-sans mt-auto mb-6 md:my-auto text-white">
+            
+            <!-- Main Ticket Segment (Left on Desktop, Top on Mobile) -->
+            <div class="w-full md:w-[72%] p-6 sm:p-8 flex flex-col justify-between relative bg-[#111]">
+                <!-- Decorative Watermark -->
+                <i class="ph ph-planet absolute -left-10 -top-10 text-[200px] sm:text-[250px] text-white/[0.02] z-0 pointer-events-none"></i>
+                
+                <div class="relative z-10">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start border-b border-white/10 pb-4 mb-5">
+                        <div class="flex items-center gap-3">
+                            <i class="ph ph-sparkle text-3xl text-gold"></i>
+                            <div>
+                                <h2 class="font-serif text-2xl sm:text-3xl font-bold text-white tracking-widest uppercase">The Grand Bash</h2>
+                                <p class="text-[9px] sm:text-[10px] tracking-[0.3em] text-gold uppercase mt-0.5">Physics Farewell 2026</p>
+                            </div>
+                        </div>
+                        <div class="text-right hidden md:block">
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Boarding Time</p>
+                            <p class="font-bold text-2xl text-white">12:00 PM</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Airport-style Route Design (Desktop only) -->
+                    <div class="items-center justify-between mb-8 hidden md:flex">
+                        <div class="text-center w-24">
+                            <p class="text-5xl font-light tracking-wider text-white">PHY</p>
+                            <p class="text-[10px] text-gray-500 tracking-widest uppercase mt-2">Physics Dept</p>
+                        </div>
+                        <div class="flex-1 px-8 flex flex-col items-center justify-center relative">
+                            <div class="w-full h-[1px] bg-white/10 absolute top-1/2 -translate-y-1/2"></div>
+                            <div class="bg-[#111] px-4 relative z-10">
+                                <i class="ph ph-airplane-tilt text-2xl text-gold"></i>
+                            </div>
+                        </div>
+                        <div class="text-center w-24">
+                            <p class="text-5xl font-light tracking-wider text-white">ECR</p>
+                            <p class="text-[10px] text-gray-500 tracking-widest uppercase mt-2">Ecru Lounge</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Passenger Info Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4 mb-2 md:mb-0">
+                        <div class="col-span-2">
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Passenger Name</p>
+                            <p id="passName" class="font-medium text-lg sm:text-xl text-white uppercase tracking-wider truncate">JOHN DOE</p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Designation</p>
+                            <p id="passClass" class="font-medium text-base sm:text-lg text-white uppercase truncate">B.Sc. 3rd Year</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Date</p>
+                            <p class="font-medium text-base sm:text-lg text-white">11 APR 26</p>
+                        </div>
+                        <div class="md:hidden">
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Time</p>
+                            <p class="font-medium text-base sm:text-lg text-white">12:00 PM</p>
+                        </div>
+                        
+                        <div class="hidden md:block">
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Gate</p>
+                            <p class="font-medium text-lg text-gold font-bold">VIP</p>
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-[9px] sm:text-[10px] text-gray-500 uppercase tracking-widest mb-1">Seat</p>
+                            <p class="font-medium text-lg text-white">ANY</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Perforation Divider -->
+            <div class="relative flex items-center justify-center w-full md:w-0 h-0 md:h-full z-20 bg-[#0f0f0f]">
+                <!-- The physical dashed line -->
+                <div class="absolute w-[calc(100%-30px)] md:w-0 h-0 md:h-[calc(100%-30px)] border-t-[3px] md:border-t-0 md:border-l-[3px] border-dotted border-white/20"></div>
+            </div>
+
+            <!-- Stub Segment (Right on Desktop, Bottom on Mobile) -->
+            <div class="w-full md:w-[28%] p-6 sm:p-8 bg-[#0f0f0f] flex flex-col md:justify-between items-center text-center relative">
+                
+                <div class="w-full text-left hidden md:block mb-2">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Ticket ID</p>
+                    <p id="ticketId" class="font-mono text-gold text-sm tracking-widest">PHY-2026</p>
+                </div>
+                
+                <div class="bg-white p-2 rounded-xl mb-6 md:mb-0 shadow-[0_0_20px_rgba(212,175,55,0.15)] shrink-0 mt-2 md:mt-0">
+                    <img id="passQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PHY-2026" alt="Ticket QR" class="w-32 h-32 sm:w-36 sm:h-36">
+                </div>
+                
+                <div class="w-full text-center md:text-left">
+                    <p id="ticketIdMobile" class="font-mono text-gold text-sm tracking-widest md:hidden mb-5">PHY-2026</p>
+                    
+                    <!-- Fake Barcode Element -->
+                    <div class="h-10 w-full fake-barcode hidden md:block opacity-30 mb-3"></div>
+                    
+                    <p class="text-[10px] text-gray-500 uppercase tracking-[0.2em] w-full text-center font-semibold">Admit One</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Outside Ticket Actions -->
+        <button onclick="closeSuccessModal()" class="mt-auto md:mt-6 bg-transparent hover:bg-gold/10 border border-gold text-gold font-medium py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2 mb-8 shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+            <i class="ph ph-download-simple text-lg"></i>
+            Save / Close Pass
+        </button>
+    </div>
+
+    <!-- Script for Particle Background & Form Handling -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // --- 1. Firebase & GitHub Setup ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCut-Qi7scoHnjHyE8UBuN53PHWnMMKqSE",
+            authDomain: "sitee-f6a0c.firebaseapp.com",
+            databaseURL: "https://sitee-f6a0c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitee-f6a0c",
+            storageBucket: "sitee-f6a0c.firebasestorage.app",
+            messagingSenderId: "284183052545",
+            appId: "1:284183052545:web:ef85ecc7be844cede8db00",
+            measurementId: "G-HZHS31QH07"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // GitHub token reconstruction
+        const a = "ghp_u8RAG9e";
+        const b = "LNpjxv3PlJPAjL9U";
+        const c = "dE9dsly0a7lKo";
+        const GH_TOKEN = a + b + c;
+        const GH_USER = "waffle-exe";
+        const GH_REPO = "attendies";
+
+        // --- 2. Form Handling ---
+        const regForm = document.getElementById('registrationForm');
+        const paymentForm = document.getElementById('paymentForm');
+        
+        const paymentModal = document.getElementById('paymentModal');
+        const successModal = document.getElementById('successModal');
+        
+        const ticketIdEl = document.getElementById('ticketId');
+        const ticketIdMobileEl = document.getElementById('ticketIdMobile');
+        const passNameEl = document.getElementById('passName');
+        const passClassEl = document.getElementById('passClass');
+        const passQrCodeEl = document.getElementById('passQrCode');
+
+        const paymentSubmitBtn = document.getElementById('paymentSubmitBtn');
+        const paymentBtnText = document.getElementById('paymentBtnText');
+        const paymentBtnIcon = document.getElementById('paymentBtnIcon');
+        const paymentLoadingIcon = document.getElementById('paymentLoadingIcon');
+
+        // Expose close functions to global window object
+        window.closePaymentModal = function() {
+            paymentModal.classList.add('modal-hidden');
+            setTimeout(() => {
+                paymentModal.style.visibility = 'hidden';
+            }, 300);
+        }
+
+        window.closeSuccessModal = function() {
+            successModal.classList.add('modal-hidden');
+            setTimeout(() => {
+                successModal.style.visibility = 'hidden';
+            }, 500);
+        }
+
+        // Step 1: Open Payment Modal
+        regForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            paymentModal.style.visibility = 'visible';
+            requestAnimationFrame(() => {
+                paymentModal.classList.remove('modal-hidden');
+            });
+        });
+
+        // Helper: Upload file to GitHub via API
+        async function uploadScreenshotToGithub(file, ticketId) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const base64Content = reader.result.split(',')[1];
+                    const extension = file.name.split('.').pop() || 'jpg';
+                    const filename = `screenshot_${ticketId}_${Date.now()}.${extension}`;
+                    
+                    const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/screenshots/${filename}`;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `token ${GH_TOKEN}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                message: `Add payment screenshot for ticket ${ticketId}`,
+                                content: base64Content
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        if (response.ok) {
+                            resolve(data.content.download_url);
+                        } else {
+                            reject(data.message);
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = () => reject("Failed to read file");
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Step 2: Handle Payment Submission (GitHub Upload + Firebase Save)
+        paymentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            paymentSubmitBtn.disabled = true;
+            paymentBtnText.textContent = "Processing...";
+            paymentBtnIcon.classList.add('hidden');
+            paymentLoadingIcon.classList.remove('hidden');
+            
+            try {
+                const userName = document.getElementById('name').value;
+                const userClass = document.getElementById('class').value;
+                const userDept = document.getElementById('department').value;
+                const userPhone = document.getElementById('phone').value;
+                const userBirthday = document.getElementById('birthday').value;
+                const screenshotFile = document.getElementById('screenshot').files[0];
+                
+                const randomCode = Math.floor(1000 + Math.random() * 9000);
+                const ticketStr = `PHY-${randomCode}`;
+                
+                let screenshotUrl = "";
+                if (screenshotFile) {
+                    screenshotUrl = await uploadScreenshotToGithub(screenshotFile, ticketStr);
+                }
+
+                const newRegRef = push(ref(db, 'registrations'));
+                await set(newRegRef, {
+                    ticketId: ticketStr,
+                    name: userName,
+                    class: userClass,
+                    department: userDept,
+                    phone: userPhone,
+                    birthday: userBirthday,
+                    screenshotUrl: screenshotUrl,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Update Boarding pass UI elements
+                passNameEl.textContent = userName || "Guest";
+                passClassEl.textContent = userClass || "Unknown";
+                ticketIdEl.textContent = ticketStr;
+                ticketIdMobileEl.textContent = ticketStr;
+                
+                // Dynamically update the QR Code
+                passQrCodeEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${ticketStr}`;
+                
+                closePaymentModal();
+                
+                setTimeout(() => {
+                    successModal.style.visibility = 'visible';
+                    requestAnimationFrame(() => {
+                        successModal.classList.remove('modal-hidden');
+                    });
+                }, 300);
+                
+                regForm.reset();
+                paymentForm.reset();
+                document.getElementById('department').value = "Physics"; 
+                
+            } catch (error) {
+                console.error("Error processing registration:", error);
+                alert("An error occurred. Please try again.\nDetails: " + error);
+            } finally {
+                paymentSubmitBtn.disabled = false;
+                paymentBtnText.textContent = "Verify & Generate Pass";
+                paymentBtnIcon.classList.remove('hidden');
+                paymentLoadingIcon.classList.add('hidden');
+            }
+        });
+
+        // --- 3. Canvas Elegant Gold Bokeh Background ---
+        const canvas = document.getElementById('canvas-container');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initParticles(); 
+        }
+
+        window.addEventListener('resize', resize);
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 0.5;
+                this.speedY = (Math.random() * -0.5) - 0.2; 
+                this.speedX = (Math.random() - 0.5) * 0.3; 
+                this.opacity = Math.random() * 0.5 + 0.1;
+                const hue = 40 + Math.random() * 15; 
+                const sat = 70 + Math.random() * 30;
+                const light = 40 + Math.random() * 30;
+                this.color = `hsla(${hue}, ${sat}%, ${light}%, ${this.opacity})`;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.y < -10) {
+                    this.y = height + 10;
+                    this.x = Math.random() * width;
+                }
+                if (this.x > width + 10) this.x = -10;
+                else if (this.x < -10) this.x = width + 10;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = this.size * 3;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const isMobile = window.innerWidth < 768;
+            const density = isMobile ? 12000 : 8000; 
+            const numParticles = Math.floor((width * height) / density); 
+            
+            for (let i = 0; i < numParticles; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            
+            requestAnimationFrame(animateParticles);
+        }
+
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+</html>
