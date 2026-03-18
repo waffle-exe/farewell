@@ -165,8 +165,8 @@
                 Memory Lane
             </div>
             
-            <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1]">
-                <span class="text-gold-gradient italic">Kabhi अलविदा<br>Na कहना ‘ 26</span> 
+            <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-normal py-2">
+                <span class="text-gold-gradient italic inline-block overflow-visible pt-4 pb-2">Kabhi अलविदा<br>Na कहना ‘ 26</span> 
             </h1>
             
             <p class="text-base sm:text-lg text-gray-300 font-light max-w-2xl leading-relaxed">
@@ -486,18 +486,24 @@
             btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-lg"></i> Generating...';
             btn.disabled = true;
 
-            // Temporarily remove rotation for a clean capture
-            container.classList.remove('md:rotate-2');
+            // Store original classes to restore later
+            const originalClasses = container.className;
+            
+            // CRITICAL FIX: Completely strip transforms and transitions for html2canvas
+            container.classList.remove('transform', 'md:rotate-2', 'hover:rotate-0', 'transition-transform', 'duration-500');
+            container.style.transform = 'none';
 
-            // Wait a brief moment to ensure fonts are rendered and rotation is removed
+            // Wait a brief moment to ensure fonts are rendered and DOM has updated
             setTimeout(() => {
                 html2canvas(container, {
-                    scale: 3, // High resolution
+                    scale: 2, // Reduced from 3 to 2 to prevent mobile browser memory crashes with high-res photos
                     useCORS: true,
                     backgroundColor: null, // Transparent background behind the polaroid
+                    logging: false
                 }).then((canvas) => {
                     const link = document.createElement('a');
-                    const safeName = document.getElementById('polFriendName').textContent.replace(/\s+/g, '_');
+                    const friendName = document.getElementById('polFriendName').textContent;
+                    const safeName = friendName ? friendName.replace(/\s+/g, '_') : 'Memory';
                     link.download = `Memory_${safeName}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
@@ -505,15 +511,15 @@
                     // Restore UI
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    container.classList.add('md:rotate-2');
+                    container.className = originalClasses;
                 }).catch(err => {
                     console.error("PNG generation failed:", err);
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    container.classList.add('md:rotate-2');
-                    alert("Oops! Something went wrong generating the image. Please try again.");
+                    container.className = originalClasses;
+                    alert("Oops! Something went wrong generating the image. The image file might be too large.");
                 });
-            }, 300);
+            }, 500); // Increased timeout to guarantee CSS transitions have cleared
         }
 
         // --- Canvas Elegant Gold Bokeh Background ---
