@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal | Physics Farewell '26</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- jsPDF & AutoTable for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    colors: {
+                        gold: { light: '#FCEEA7', DEFAULT: '#D4AF37', dark: '#AA8C2C' },
+                        dark: { bg: '#0a0a0a', panel: '#121212' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .modal-hidden {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transform: scale(0.95);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
+
+    <!-- Login Overlay -->
+    <div id="loginScreen" class="fixed inset-0 z-[60] flex items-center justify-center bg-[#0a0a0a] transition-all duration-500">
+        <div class="glass-panel p-8 sm:p-10 rounded-3xl max-w-sm w-full w-[90%] text-center border border-gold/20 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
+            <div class="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-gold/30">
+                <i class="ph ph-lock-key text-3xl text-gold"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-white">Admin Portal</h2>
+            <p class="text-sm text-gray-400 mb-8">Enter authorization code to access</p>
+            
+            <form id="loginForm" class="space-y-4">
+                <input type="password" id="adminPwd" placeholder="Password" required
+                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-center text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all">
+                <button type="submit" class="w-full bg-gold hover:bg-gold-light text-dark-bg font-bold py-3 rounded-xl transition-colors">
+                    Authenticate
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden until logged in) -->
+    <main id="dashboardScreen" class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 hidden opacity-0 transition-opacity duration-500">
+        
+        <!-- Header & Stats -->
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 pb-6 border-b border-white/10">
+            <div>
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="ph ph-shield-check text-gold"></i>
+                    Admin Dashboard
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Manage attendees and verifications</p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+                <!-- PDF Download Button -->
+                <button onclick="downloadAcceptedPDF()" class="w-full sm:w-auto bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold font-semibold py-3 px-5 rounded-2xl transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                    <i class="ph ph-file-pdf text-xl"></i>
+                    Download Accepted List
+                </button>
+                
+                <div class="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-2xl glass-panel w-full sm:w-auto">
+                    <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 shrink-0">
+                        <i class="ph ph-coins text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Total Revenue</p>
+                        <p class="text-2xl font-bold text-white tracking-wide" id="totalRevenue">₹0</p>
+                    </div>
+                    <div class="ml-4 pl-4 border-l border-white/10">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Accepted</p>
+                        <p class="text-2xl font-bold text-gold tracking-wide" id="totalAccepted">0</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Loader -->
+        <div id="dataLoader" class="flex flex-col items-center justify-center py-20 text-gold">
+            <i class="ph ph-spinner-gap animate-spin text-4xl mb-4"></i>
+            <p class="text-sm text-gray-400">Syncing with database...</p>
+        </div>
+
+        <!-- Data Grid -->
+        <div id="dataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Cards will be injected here via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-gray-500">
+            <i class="ph ph-users-three text-6xl mb-4 opacity-50"></i>
+            <p class="text-lg">No registrations found.</p>
+        </div>
+    </main>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all duration-300 modal-hidden p-4">
+        <div class="relative max-w-3xl w-full">
+            <button onclick="closeImageModal()" class="absolute -top-12 right-0 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+            <img id="previewImg" src="" alt="Payment Receipt" class="w-full h-auto max-h-[80vh] object-contain rounded-xl border border-white/20 shadow-2xl bg-black">
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 modal-hidden p-4">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center border border-white/10 shadow-2xl">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <i class="ph ph-warning text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Are you sure?</h3>
+            <p class="text-gray-400 text-sm mb-6">This action cannot be undone. The registration will be permanently deleted.</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white font-medium">Cancel</button>
+                <button id="confirmBtn" class="flex-1 py-3 px-4 rounded-xl bg-red-500 hover:bg-red-600 transition-colors text-white font-medium shadow-[0_0_15px_rgba(239,68,68,0.3)]">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // 1. Firebase Configuration (From original code)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCut-Qi7scoHnjHyE8UBuN53PHWnMMKqSE",
+            authDomain: "sitee-f6a0c.firebaseapp.com",
+            databaseURL: "https://sitee-f6a0c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sitee-f6a0c",
+            storageBucket: "sitee-f6a0c.firebasestorage.app",
+            messagingSenderId: "284183052545",
+            appId: "1:284183052545:web:ef85ecc7be844cede8db00",
+            measurementId: "G-HZHS31QH07"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // UI Elements
+        const dataGrid = document.getElementById('dataGrid');
+        const dataLoader = document.getElementById('dataLoader');
+        const emptyState = document.getElementById('emptyState');
+        const totalRevenueEl = document.getElementById('totalRevenue');
+        const totalAcceptedEl = document.getElementById('totalAccepted');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        const loginScreen = document.getElementById('loginScreen');
+
+        // Global state to store current key for deletion and all data for PDF export
+        let currentDeleteKey = null;
+        let allRegistrations = [];
+
+        // --- Custom Toast Notification ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const isError = type === 'error';
+            
+            toast.className = `flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border transform transition-all duration-300 translate-x-full opacity-0 ${
+                isError ? 'bg-red-500/10 border-red-500/30 text-red-200' : 'bg-green-500/10 border-green-500/30 text-green-200'
+            }`;
+            
+            toast.innerHTML = `
+                <i class="ph ${isError ? 'ph-warning-circle text-red-400' : 'ph-check-circle text-green-400'} text-xl"></i>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            });
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Auth Logic ---
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pwd = document.getElementById('adminPwd').value;
+            if (pwd === 'qwerty') {
+                loginScreen.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    dashboardScreen.classList.remove('hidden');
+                    // slight delay for fade-in effect
+                    requestAnimationFrame(() => {
+                        dashboardScreen.classList.remove('opacity-0');
+                    });
+                    initDataListener();
+                }, 500);
+                showToast("Authentication successful");
+            } else {
+                showToast("Incorrect password. Access denied.", "error");
+            }
+        });
+
+        // --- Fetch & Render Data ---
+        function initDataListener() {
+            const registrationsRef = ref(db, 'registrations');
+            
+            onValue(registrationsRef, (snapshot) => {
+                dataLoader.classList.add('hidden');
+                dataGrid.innerHTML = '';
+                allRegistrations = []; // Reset array
+                
+                if (!snapshot.exists()) {
+                    dataGrid.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    totalRevenueEl.innerText = "₹0";
+                    totalAcceptedEl.innerText = "0";
+                    return;
+                }
+
+                dataGrid.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+
+                let acceptedCount = 0;
+                const data = snapshot.val();
+                
+                // Convert to array and sort by newest first
+                const dataArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                allRegistrations = dataArray; // Store globally for PDF export
+
+                dataArray.forEach((entry) => {
+                    const status = entry.status || 'Pending';
+                    if (status === 'Accepted') acceptedCount++;
+
+                    dataGrid.appendChild(createCard(entry, status));
+                });
+
+                // Update Stats
+                totalAcceptedEl.innerText = acceptedCount;
+                totalRevenueEl.innerText = `₹${(acceptedCount * 1250).toLocaleString('en-IN')}`;
+            });
+        }
+
+        // --- Card Generator ---
+        function createCard(data, currentStatus) {
+            const card = document.createElement('div');
+            card.className = "glass-panel rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors";
+            
+            // Status Badge Config
+            let badgeClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+            let badgeIcon = "ph-clock";
+            if (currentStatus === 'Accepted') {
+                badgeClass = "bg-green-500/10 text-green-400 border-green-500/20";
+                badgeIcon = "ph-check-circle";
+            } else if (currentStatus === 'Rejected') {
+                badgeClass = "bg-red-500/10 text-red-400 border-red-500/20";
+                badgeIcon = "ph-x-circle";
+            }
+
+            // Fallback Image
+            const imgUrl = data.screenshotUrl || 'https://via.placeholder.com/150/111111/FFFFFF?text=No+Receipt';
+            
+            // Format Date
+            const dateObj = new Date(data.timestamp);
+            const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute:'2-digit' });
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white capitalize">${data.name || 'Unknown'}</h3>
+                        <p class="text-xs font-mono text-gold mt-1 tracking-widest">${data.ticketId || 'NO-ID'}</p>
+                    </div>
+                    <div class="px-2.5 py-1 rounded-full border text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1 ${badgeClass}">
+                        <i class="ph ${badgeIcon}"></i>
+                        ${currentStatus}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm text-gray-400 mb-5 flex-1">
+                    <div class="col-span-1">
+                        <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-0.5">Class</p>
+                        <p class="text-white truncate">${data.class || '-'}</p>
+                    </div>
+                    <div class="col-span-1">
+                        <p class="text-[10px] uppercase tracking-wider text-gray-500 mb-0.5">Phone</p>
+                        <p class="text-white">${data.phone || '-'}</p>
+                    </div>
+                    <div class="col-span-2 flex items-center gap-2 mt-1">
+                        <i class="ph ph-calendar-blank text-gray-500"></i>
+                        <span class="text-xs">${dateStr}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mb-4">
+                    <!-- Thumbnail -->
+                    <div class="w-16 h-16 rounded-lg overflow-hidden border border-white/10 cursor-pointer shrink-0 group/img relative"
+                         onclick="openImageModal('${imgUrl}')">
+                        <img src="${imgUrl}" class="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300" alt="Receipt">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                            <i class="ph ph-magnifying-glass-plus text-white"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- WhatsApp Button -->
+                    <button onclick="sendWhatsApp('${data.phone}', '${data.name}', '${currentStatus}', '${data.ticketId}')" 
+                            class="flex-1 flex flex-col items-center justify-center gap-1 rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors">
+                        <i class="ph ph-whatsapp-logo text-2xl"></i>
+                        <span class="text-[10px] uppercase font-bold tracking-wider">Message</span>
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-3 gap-2 mt-auto pt-4 border-t border-white/5">
+                    <button onclick="updateStatus('${data.id}', 'Accepted')" class="py-2 rounded-lg bg-white/5 hover:bg-green-500/20 hover:text-green-400 text-gray-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+                        <i class="ph ph-check"></i> Accept
+                    </button>
+                    <button onclick="updateStatus('${data.id}', 'Rejected')" class="py-2 rounded-lg bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+                        <i class="ph ph-x"></i> Reject
+                    </button>
+                    <button onclick="triggerDelete('${data.id}')" class="py-2 rounded-lg bg-white/5 hover:bg-red-500 hover:text-white text-gray-400 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+                        <i class="ph ph-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // --- Global Actions (Attached to Window for HTML onclick) ---
+
+        window.updateStatus = async function(id, newStatus) {
+            try {
+                await update(ref(db, `registrations/${id}`), { status: newStatus });
+                showToast(`Status updated to ${newStatus}`);
+            } catch (error) {
+                showToast("Failed to update status", "error");
+                console.error(error);
+            }
+        };
+
+        window.triggerDelete = function(id) {
+            currentDeleteKey = id;
+            const modal = document.getElementById('confirmModal');
+            modal.style.visibility = 'visible';
+            requestAnimationFrame(() => modal.classList.remove('modal-hidden'));
+        };
+
+        document.getElementById('confirmBtn').addEventListener('click', async () => {
+            if (!currentDeleteKey) return;
+            try {
+                await remove(ref(db, `registrations/${currentDeleteKey}`));
+                showToast("Registration deleted successfully");
+                closeConfirmModal();
+            } catch (error) {
+                showToast("Failed to delete", "error");
+                console.error(error);
+            }
+        });
+
+        window.closeConfirmModal = function() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('modal-hidden');
+            setTimeout(() => { modal.style.visibility = 'hidden'; currentDeleteKey = null; }, 300);
+        };
+
+        window.sendWhatsApp = function(phone, name, status, ticketId) {
+            // Clean phone number (strip spaces/symbols except +)
+            const cleanPhone = phone.replace(/[^\d+]/g, '');
+            
+            let message = "";
+            const safeName = name ? name.split(' ')[0] : 'there';
+
+            if (status === 'Accepted') {
+                message = `Hello ${safeName}! ✨\n\nYour payment for the Physics Farewell Party '26 has been verified. Your Ticket ID is *${ticketId}*.\n\nWe look forward to hosting you on 11th April!`;
+            } else if (status === 'Rejected') {
+                message = `Hello ${safeName},\n\nWe encountered an issue verifying your payment for the Physics Farewell Party '26 (Ticket ID: ${ticketId}).\n\nPlease reach out to the organizing committee to resolve this.`;
+            } else {
+                message = `Hello ${safeName},\n\nWe have received your registration for the Physics Farewell Party '26 (Ticket ID: ${ticketId}). Your payment verification is currently pending. We will update you shortly!`;
+            }
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+        };
+
+        window.openImageModal = function(url) {
+            const modal = document.getElementById('imageModal');
+            document.getElementById('previewImg').src = url;
+            modal.style.visibility = 'visible';
+            requestAnimationFrame(() => modal.classList.remove('modal-hidden'));
+        };
+
+        window.closeImageModal = function() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('modal-hidden');
+            setTimeout(() => { modal.style.visibility = 'hidden'; }, 300);
+        };
+
+        // --- PDF Export Logic ---
+        window.downloadAcceptedPDF = function() {
+            const { jsPDF } = window.jspdf;
+            
+            // Filter only accepted candidates
+            const acceptedUsers = allRegistrations.filter(user => user.status === 'Accepted');
+
+            if (acceptedUsers.length === 0) {
+                showToast("No accepted candidates available to download.", "error");
+                return;
+            }
+
+            const doc = new jsPDF();
+            
+            // PDF Header & Styling
+            doc.setFontSize(18);
+            doc.setTextColor(40);
+            doc.text("Physics Farewell '26 - Accepted Guest List", 14, 22);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Generated on: ${new Date().toLocaleString('en-GB')}`, 14, 30);
+            doc.text(`Total Attendees: ${acceptedUsers.length}`, 14, 36);
+
+            // Prepare Table Headers and Data
+            const tableColumn = ["Ticket ID", "Name", "Class", "Phone", "Registration Date"];
+            const tableRows = [];
+
+            acceptedUsers.forEach(user => {
+                const dateObj = new Date(user.timestamp);
+                const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                
+                const userData = [
+                    user.ticketId || 'N/A',
+                    user.name || 'Unknown',
+                    user.class || 'N/A',
+                    user.phone || 'N/A',
+                    dateStr
+                ];
+                tableRows.push(userData);
+            });
+
+            // Generate AutoTable
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 45,
+                theme: 'grid',
+                styles: { fontSize: 10, cellPadding: 3 },
+                headStyles: { fillColor: [212, 175, 55], textColor: [255, 255, 255], fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
+
+            // Save PDF
+            doc.save("Physics_Farewell_Accepted_List.pdf");
+            showToast("PDF downloaded successfully!");
+        };
+
+    </script>
+</body>
+</html>
