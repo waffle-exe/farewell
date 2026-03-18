@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Farewell Party 2026 - Memories</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Added 'Caveat' for the Polaroid handwritten look -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- html2canvas for downloading the polaroid as an image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        handwriting: ['Caveat', 'cursive'],
+                    },
+                    colors: {
+                        gold: {
+                            light: '#FCEEA7',
+                            DEFAULT: '#D4AF37',
+                            dark: '#AA8C2C',
+                        },
+                        dark: {
+                            bg: '#0a0a0a',
+                            panel: '#121212',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1s ease-out',
+                        'float-slow': 'float 8s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Premium Glass/Card utility */
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Elegant Ambient Lighting */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #D4AF37; }
+        .orb-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: #FCEEA7; }
+        
+        /* Custom Input Styles - Mobile Optimized */
+        input, select, textarea {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+            font-size: 16px !important; 
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #D4AF37;
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        select option {
+            background-color: #121212;
+            color: white;
+        }
+
+        /* Custom File Input Styling */
+        input[type="file"]::file-selector-button {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: rgba(212, 175, 55, 0.2);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .modal-hidden {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transform: scale(0.98);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(to right, #FCEEA7, #D4AF37, #AA8C2C);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Polaroid styling */
+        .polaroid {
+            background: #ffffff;
+            padding: 1rem 1rem 3rem 1rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 5px 15px rgba(212, 175, 55, 0.2);
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0a] min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-12 relative">
+
+    <!-- Background Elements -->
+    <canvas id="canvas-container"></canvas>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <main class="w-full max-w-3xl flex flex-col gap-8 sm:gap-12 items-center z-10 my-4 animate-fade-in">
+        
+        <!-- Header Section -->
+        <div class="space-y-6 sm:space-y-8 animate-float-slow text-center flex flex-col items-center mt-4">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold/30 bg-gold/5 text-xs sm:text-sm font-semibold text-gold tracking-[0.2em] uppercase">
+                <i class="ph ph-camera"></i>
+                Memory Lane
+            </div>
+            
+            <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1]">
+                <span class="text-gold-gradient italic">Kabhi अलविदा<br>Na कहना ‘ 26</span> 
+            </h1>
+            
+            <p class="text-base sm:text-lg text-gray-300 font-light max-w-2xl leading-relaxed">
+                Before we part ways, let's immortalize the bonds we've built. Upload a picture of your friend, tag them, and leave a heartfelt message to be featured in our Farewell Memory Gallery.
+            </p>
+
+            <div class="bg-gold/10 border border-gold/30 text-gold px-5 py-3 rounded-xl max-w-xl shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+                <p class="text-sm font-medium flex items-center justify-center gap-2">
+                    <i class="ph ph-info text-lg"></i>
+                    Please note: Only final-year student photographs are required (MSc FYIC V, MSc FYIP III, and MSc TYIP II) to arrange the group photograph.
+                </p>
+            </div>
+        </div>
+
+        <!-- Submission Form -->
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 lg:p-10 relative overflow-hidden w-full text-left shadow-2xl">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-dark"></div>
+            
+            <form id="memoryForm" class="space-y-4 sm:space-y-5">
+                
+                <!-- Uploader Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="uploaderName">Your Name *</label>
+                        <div class="relative">
+                            <i class="ph ph-user absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <input type="text" id="uploaderName" required placeholder="Who is uploading?" 
+                                   class="w-full pl-11 pr-4 py-3 rounded-xl text-white placeholder-gray-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="uploaderClass">Your Class *</label>
+                        <div class="relative">
+                            <i class="ph ph-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <select id="uploaderClass" required class="w-full pl-11 pr-10 py-3 rounded-xl appearance-none text-white">
+                                <option value="" disabled selected class="text-gray-500">Select Final Year Class</option>
+                                <option value="MSc FYIC V">MSc FYIC V</option>
+                                <option value="MSc FYIP III">MSc FYIP III</option>
+                                <option value="MSc TYIP II">MSc TYIP II</option>
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full h-px bg-white/10 my-4"></div>
+
+                <!-- Friend Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="friendName">Friend's Name *</label>
+                        <div class="relative">
+                            <i class="ph ph-users absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <input type="text" id="friendName" required placeholder="Name of your friend" 
+                                   class="w-full pl-11 pr-4 py-3 rounded-xl text-white placeholder-gray-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="friendClass">Friend's Class *</label>
+                        <div class="relative">
+                            <i class="ph ph-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <select id="friendClass" required class="w-full pl-11 pr-10 py-3 rounded-xl appearance-none text-white">
+                                <option value="" disabled selected class="text-gray-500">Select Final Year Class</option>
+                                <option value="MSc FYIC V">MSc FYIC V</option>
+                                <option value="MSc FYIP III">MSc FYIP III</option>
+                                <option value="MSc TYIP II">MSc TYIP II</option>
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gold/60 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tag & Picture -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="tagName">Tag / Nickname *</label>
+                        <div class="relative">
+                            <i class="ph ph-hash absolute left-4 top-1/2 -translate-y-1/2 text-gold/60 text-lg"></i>
+                            <input type="text" id="tagName" required placeholder="e.g. The Overthinker" 
+                                   class="w-full pl-11 pr-4 py-3 rounded-xl text-white placeholder-gray-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="friendImage">Upload Picture *</label>
+                        <div class="relative h-[48px] flex items-center">
+                            <input type="file" id="friendImage" accept="image/*" required 
+                                   class="w-full text-sm text-gray-300 file:border-0 file:font-semibold bg-transparent rounded-xl cursor-pointer focus:outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comment -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5" for="comment">Memory / Comment *</label>
+                    <textarea id="comment" required rows="3" placeholder="Share a special memory or a farewell message..." 
+                              class="w-full p-4 rounded-xl text-white placeholder-gray-500 resize-none"></textarea>
+                </div>
+
+                <button id="submitBtn" type="submit" class="w-full mt-6 bg-gold hover:bg-gold-light text-dark-bg font-bold text-base sm:text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all duration-300 flex justify-center items-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span id="submitText">Submit Memory</span>
+                    <i id="submitIcon" class="ph ph-paper-plane-right text-xl group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                    <!-- Loading Spinner -->
+                    <svg id="loadingIcon" class="animate-spin hidden h-5 w-5 text-dark-bg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Success Modal Overlay (Polaroid Generator) -->
+    <div id="successModal" class="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl transition-all duration-500 modal-hidden p-4 sm:p-6 overflow-y-auto">
+        
+        <div class="text-center mb-6 mt-8 md:mt-0 animate-fade-in">
+            <h3 class="font-serif text-3xl sm:text-4xl font-bold text-gold mb-2">Memory Captured!</h3>
+            <p class="text-gray-300">Your memory has been successfully added to our collection.</p>
+        </div>
+
+        <!-- The Polaroid Card to be captured by html2canvas -->
+        <div id="polaroidContainer" class="polaroid w-full max-w-[320px] transform md:rotate-2 hover:rotate-0 transition-transform duration-500 mb-8 mx-auto">
+            <!-- Image Area -->
+            <div class="aspect-square bg-gray-200 mb-4 overflow-hidden border border-gray-200">
+                <img id="polImage" src="" alt="Friend's Picture" class="w-full h-full object-cover" />
+            </div>
+            
+            <!-- Details Area (Handwritten Font) -->
+            <div class="text-center">
+                <h4 id="polFriendName" class="font-handwriting text-3xl font-bold text-gray-900 leading-none"></h4>
+                <p id="polTag" class="font-handwriting text-xl text-gold-dark font-semibold mt-1"></p>
+                <div class="w-12 h-px bg-gray-300 mx-auto my-3"></div>
+                <p id="polComment" class="font-handwriting text-xl text-gray-700 leading-snug line-clamp-4"></p>
+                <p class="font-handwriting text-lg text-gray-500 text-right mt-4">- <span id="polUploaderName"></span></p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 mb-8">
+            <button onclick="downloadPolaroid()" class="bg-gold hover:bg-gold-light text-dark-bg font-bold py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]">
+                <i class="ph ph-download-simple text-lg"></i>
+                Download Polaroid
+            </button>
+            <button onclick="closeSuccessModal()" class="bg-transparent hover:bg-white/5 border border-white/20 text-white font-medium py-3 px-8 rounded-full transition-colors text-sm flex items-center justify-center gap-2">
+                Share Another
+            </button>
+        </div>
+    </div>
+
+    <!-- Script for Particle Background & Logic -->
+    <script>
+        const memoryForm = document.getElementById('memoryForm');
+        const successModal = document.getElementById('successModal');
+        
+        // Form UI Elements
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitIcon = document.getElementById('submitIcon');
+        const loadingIcon = document.getElementById('loadingIcon');
+
+        // Polaroid UI Elements
+        const polImage = document.getElementById('polImage');
+        const polFriendName = document.getElementById('polFriendName');
+        const polTag = document.getElementById('polTag');
+        const polComment = document.getElementById('polComment');
+        const polUploaderName = document.getElementById('polUploaderName');
+
+        // Close Modal
+        window.closeSuccessModal = function() {
+            successModal.classList.add('modal-hidden');
+            setTimeout(() => {
+                successModal.style.visibility = 'hidden';
+            }, 500);
+            memoryForm.reset(); // Reset form for the next submission
+        }
+
+        // Handle Form Submission
+        memoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Set UI to loading state
+            submitBtn.disabled = true;
+            submitText.textContent = "Processing...";
+            submitIcon.classList.add('hidden');
+            loadingIcon.classList.remove('hidden');
+
+            // Collect Form Data
+            const uploaderName = document.getElementById('uploaderName').value;
+            const friendName = document.getElementById('friendName').value;
+            const tagName = document.getElementById('tagName').value;
+            const comment = document.getElementById('comment').value;
+            const fileInput = document.getElementById('friendImage');
+
+            // Read image file to Data URL
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Populate Polaroid
+                    polImage.src = e.target.result;
+                    polFriendName.textContent = friendName;
+                    polTag.textContent = `"${tagName}"`;
+                    polComment.textContent = comment;
+                    polUploaderName.textContent = uploaderName;
+
+                    // Simulate network/database delay, then show success
+                    setTimeout(() => {
+                        // Reset button UI
+                        submitBtn.disabled = false;
+                        submitText.textContent = "Submit Memory";
+                        submitIcon.classList.remove('hidden');
+                        loadingIcon.classList.add('hidden');
+
+                        // Show Modal
+                        successModal.style.visibility = 'visible';
+                        requestAnimationFrame(() => {
+                            successModal.classList.remove('modal-hidden');
+                        });
+                    }, 800);
+                };
+                
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+
+        // Download Polaroid using html2canvas
+        window.downloadPolaroid = function() {
+            const container = document.getElementById('polaroidContainer');
+            const btn = document.querySelector('button[onclick="downloadPolaroid()"]');
+            const originalText = btn.innerHTML;
+            
+            // UI loading state for button
+            btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-lg"></i> Generating...';
+            btn.disabled = true;
+
+            // Temporarily remove rotation for a clean capture
+            container.classList.remove('md:rotate-2');
+
+            // Wait a brief moment to ensure fonts are rendered and rotation is removed
+            setTimeout(() => {
+                html2canvas(container, {
+                    scale: 3, // High resolution
+                    useCORS: true,
+                    backgroundColor: null, // Transparent background behind the polaroid
+                }).then((canvas) => {
+                    const link = document.createElement('a');
+                    const safeName = document.getElementById('polFriendName').textContent.replace(/\s+/g, '_');
+                    link.download = `Memory_${safeName}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    // Restore UI
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    container.classList.add('md:rotate-2');
+                }).catch(err => {
+                    console.error("PNG generation failed:", err);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    container.classList.add('md:rotate-2');
+                    alert("Oops! Something went wrong generating the image. Please try again.");
+                });
+            }, 300);
+        }
+
+        // --- Canvas Elegant Gold Bokeh Background ---
+        const canvas = document.getElementById('canvas-container');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initParticles(); 
+        }
+
+        window.addEventListener('resize', resize);
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 0.5;
+                this.speedY = (Math.random() * -0.5) - 0.2; 
+                this.speedX = (Math.random() - 0.5) * 0.3; 
+                this.opacity = Math.random() * 0.5 + 0.1;
+                const hue = 40 + Math.random() * 15; 
+                const sat = 70 + Math.random() * 30;
+                const light = 40 + Math.random() * 30;
+                this.color = `hsla(${hue}, ${sat}%, ${light}%, ${this.opacity})`;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.y < -10) {
+                    this.y = height + 10;
+                    this.x = Math.random() * width;
+                }
+                if (this.x > width + 10) this.x = -10;
+                else if (this.x < -10) this.x = width + 10;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = this.size * 3;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const isMobile = window.innerWidth < 768;
+            const density = isMobile ? 12000 : 8000; 
+            const numParticles = Math.floor((width * height) / density); 
+            
+            for (let i = 0; i < numParticles; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            
+            requestAnimationFrame(animateParticles);
+        }
+
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+</html>
