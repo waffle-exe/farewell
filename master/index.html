@@ -8,8 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -43,8 +47,8 @@
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; border: 2px solid #0a0a0a; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
         .tab-active { border-color: #D4AF37; color: #D4AF37; }
@@ -53,7 +57,7 @@
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3 pointer-events-none"></div>
 
     <div id="loginScreen" class="fixed inset-0 z-[60] flex items-center justify-center bg-[#0a0a0a] transition-all duration-500">
         <div class="glass-panel p-8 sm:p-10 rounded-3xl max-w-sm w-full w-[90%] text-center border border-gold/20 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
@@ -188,6 +192,9 @@
         let currentDeleteKey = null;
         let allRegistrations = [];
         let currentTab = 'registrations';
+        
+        // Expose grouped memories globally for the ZIP download function
+        window.globalGroupedMemories = {};
 
         // --- Custom Toast Notification ---
         function showToast(message, type = 'success') {
@@ -211,6 +218,9 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+        
+        // Expose to window for inline calls
+        window.showToast = showToast;
 
         // --- Auth Logic ---
         document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -256,7 +266,7 @@
                 btnMem.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-active transition-all hover:text-white';
                 btnReg.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-inactive transition-all hover:text-white';
                 
-                registrationControls.classList.add('hidden'); // Hide revenue/pdf buttons
+                registrationControls.classList.add('hidden'); 
                 registrationsGrid.classList.add('hidden');
                 
                 if (memoriesGrid.children.length > 0) {
@@ -291,11 +301,9 @@
                     });
                 }
                 
-                // Update Stats
                 totalAcceptedEl.innerText = acceptedCount;
                 totalRevenueEl.innerText = `₹${(acceptedCount * 1250).toLocaleString('en-IN')}`;
                 
-                // Re-evaluate empty state if currently on this tab
                 if (currentTab === 'registrations') {
                     dataLoader.classList.add('hidden');
                     if (registrationsGrid.children.length > 0) {
@@ -311,33 +319,33 @@
             const memoriesRef = ref(db, 'memories');
             onValue(memoriesRef, (snapshot) => {
                 memoriesGrid.innerHTML = '';
+                window.globalGroupedMemories = {};
                 
                 if (snapshot.exists()) {
                     const memoriesData = snapshot.val();
-                    const groupedMemories = {};
 
                     // Group by normalized friendName
                     Object.keys(memoriesData).forEach(key => {
                         const mem = memoriesData[key];
                         const groupKey = (mem.friendName || 'Unknown').trim().toLowerCase();
                         
-                        if (!groupedMemories[groupKey]) {
-                            groupedMemories[groupKey] = {
-                                displayName: mem.friendName.trim(), // Original case
+                        if (!window.globalGroupedMemories[groupKey]) {
+                            window.globalGroupedMemories[groupKey] = {
+                                displayName: mem.friendName.trim(),
                                 class: mem.friendClass || 'Unknown Class',
                                 photos: []
                             };
                         }
-                        groupedMemories[groupKey].photos.push({ id: key, ...mem });
+                        window.globalGroupedMemories[groupKey].photos.push({ id: key, ...mem });
                     });
 
                     // Render Grouped Cards
-                    Object.values(groupedMemories).forEach(group => {
-                        memoriesGrid.appendChild(createMemoryGroupCard(group));
+                    Object.keys(window.globalGroupedMemories).forEach(groupKey => {
+                        const group = window.globalGroupedMemories[groupKey];
+                        memoriesGrid.appendChild(createMemoryGroupCard(group, groupKey));
                     });
                 }
 
-                // Re-evaluate empty state if currently on this tab
                 if (currentTab === 'memories') {
                     dataLoader.classList.add('hidden');
                     if (memoriesGrid.children.length > 0) {
@@ -427,57 +435,141 @@
         }
 
         // --- Card Generator: Memories (Grouped by Person) ---
-        function createMemoryGroupCard(group) {
+        function createMemoryGroupCard(group, groupKey) {
             const card = document.createElement('div');
             card.className = "glass-panel rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col relative overflow-hidden";
             
-            // Build the grid of photos for this specific person
+            // Build the grid of photos
             let photosHTML = '';
             group.photos.forEach(photo => {
                 const imgUrl = photo.imageUrl || '';
                 const uploader = photo.uploaderName || 'Anonymous';
                 const tag = photo.tagName || '';
-                const comment = photo.comment ? `title="${photo.comment.replace(/"/g, '&quot;')}"` : '';
+                const comment = photo.comment || '';
+
+                // Safe strings for function parameters
+                const encTag = encodeURIComponent(tag);
+                const encComment = encodeURIComponent(comment);
+                const encUploader = encodeURIComponent(uploader);
 
                 photosHTML += `
-                    <div class="relative group/photo cursor-pointer flex flex-col" onclick="openImageModal('${imgUrl}')" ${comment}>
-                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-white/10 mb-1 relative">
-                            <img src="${imgUrl}" class="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-300">
+                    <div class="relative group/photo flex flex-col bg-white/5 p-2 rounded-xl border border-white/5 hover:border-white/20 transition-colors">
+                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-white/10 mb-2 relative cursor-pointer" onclick="openImageModal('${imgUrl}')">
+                            <img src="${imgUrl}" class="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-300" loading="lazy">
                             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity">
                                 <i class="ph ph-arrows-out text-white text-xl"></i>
                             </div>
+                            
+                            <button onclick="event.stopPropagation(); triggerDelete('${photo.id}', 'memories')" class="absolute top-1 right-1 w-7 h-7 bg-red-500/90 rounded-md text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-all hover:bg-red-600 shadow-lg" title="Delete this memory">
+                                <i class="ph ph-trash text-sm"></i>
+                            </button>
                         </div>
-                        <p class="text-[10px] text-gray-400 truncate">By: <span class="text-white">${uploader}</span></p>
-                        ${tag ? `<p class="text-[9px] text-gold truncate">#${tag}</p>` : ''}
                         
-                        <button onclick="event.stopPropagation(); triggerDelete('${photo.id}', 'memories')" class="absolute top-1 right-1 w-6 h-6 bg-red-500/80 rounded-md text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-red-600">
-                            <i class="ph ph-trash text-xs"></i>
-                        </button>
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                ${tag ? `<p class="text-xs text-gold font-semibold truncate mb-1" title="${tag.replace(/"/g, '&quot;')}">#${tag}</p>` : ''}
+                                ${comment ? `<p class="text-[10px] text-gray-300 line-clamp-2 leading-snug mb-2" title="${comment.replace(/"/g, '&quot;')}">${comment}</p>` : ''}
+                            </div>
+                            
+                            <div class="flex items-center justify-between mt-auto pt-2 border-t border-white/10">
+                                <p class="text-[9px] text-gray-500 truncate max-w-[75%]" title="Uploaded by: ${uploader.replace(/"/g, '&quot;')}">By: <span class="text-gray-300">${uploader}</span></p>
+                                <button onclick="copyMemoryText('${encTag}', '${encComment}', '${encUploader}')" class="text-gray-400 hover:text-white transition-colors p-1" title="Copy Info">
+                                    <i class="ph ph-copy text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
 
             card.innerHTML = `
-                <div class="mb-4 border-b border-white/10 pb-3 flex justify-between items-center">
+                <div class="mb-4 border-b border-white/10 pb-4 flex justify-between items-start">
                     <div>
-                        <h3 class="text-xl font-bold text-white capitalize">${group.displayName}</h3>
-                        <p class="text-xs text-gold mt-0.5 flex items-center gap-1">
+                        <h3 class="text-xl font-bold text-white capitalize flex items-center gap-2">
+                            ${group.displayName}
+                            <span class="bg-white/10 px-2 py-0.5 rounded-full text-[10px] font-semibold text-gray-300 border border-white/10">
+                                <i class="ph ph-image inline mr-0.5"></i>${group.photos.length}
+                            </span>
+                        </h3>
+                        <p class="text-xs text-gold mt-1 flex items-center gap-1">
                             <i class="ph ph-graduation-cap"></i> ${group.class}
                         </p>
                     </div>
-                    <div class="bg-white/5 px-3 py-1 rounded-full text-xs font-semibold text-gray-300 border border-white/10">
-                        <i class="ph ph-image mr-1"></i>${group.photos.length}
-                    </div>
+                    
+                    <button onclick="downloadZip('${groupKey}')" class="bg-gold/10 hover:bg-gold/20 text-gold text-[11px] font-bold tracking-wider uppercase px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors border border-gold/30">
+                        <i class="ph ph-file-zip text-sm"></i> Download (.zip)
+                    </button>
                 </div>
                 
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto pr-1 pb-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-2 pb-1">
                     ${photosHTML}
                 </div>
             `;
             return card;
         }
 
-        // --- Global Actions ---
+        // --- Copy Text Logic ---
+        window.copyMemoryText = function(encTag, encComment, encUploader) {
+            const tag = decodeURIComponent(encTag);
+            const comment = decodeURIComponent(encComment);
+            const uploader = decodeURIComponent(encUploader);
+            
+            let textToCopy = `Tag: ${tag}\n`;
+            if (comment) textToCopy += `Comment: ${comment}\n`;
+            textToCopy += `- Uploaded by: ${uploader}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast("Memory text copied to clipboard!");
+            }).catch(() => {
+                showToast("Failed to copy text", "error");
+            });
+        };
+
+        // --- Download ZIP Logic ---
+        window.downloadZip = async function(groupKey) {
+            const group = window.globalGroupedMemories[groupKey];
+            if (!group || !group.photos.length) return;
+            
+            showToast(`Preparing ZIP file for ${group.displayName}...`);
+            
+            const zip = new JSZip();
+            // Sanitize folder/file names
+            const safeName = group.displayName.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '_');
+            const folder = zip.folder(`${safeName}_Memories`);
+            
+            let count = 0;
+            for (let i = 0; i < group.photos.length; i++) {
+                const photo = group.photos[i];
+                try {
+                    // Fetch the image as a Blob (Assumes CORS is allowed by Github)
+                    const response = await fetch(photo.imageUrl);
+                    const blob = await response.blob();
+                    
+                    // Determine extension
+                    let ext = 'jpg';
+                    if (photo.imageUrl.toLowerCase().includes('.png')) ext = 'png';
+                    if (photo.imageUrl.toLowerCase().includes('.jpeg')) ext = 'jpeg';
+                    
+                    const safeUploader = photo.uploaderName.replace(/[^a-zA-Z0-9]/g, '');
+                    const fileName = `${safeName}_by_${safeUploader}_${i+1}.${ext}`;
+                    
+                    folder.file(fileName, blob);
+                    count++;
+                } catch (e) {
+                    console.error("Error fetching image for zip", e);
+                }
+            }
+            
+            if (count > 0) {
+                const content = await zip.generateAsync({type:"blob"});
+                saveAs(content, `${safeName}_Memories.zip`);
+                showToast("ZIP downloaded successfully!");
+            } else {
+                showToast("Failed to generate ZIP. Images might be restricted.", "error");
+            }
+        };
+
+        // --- Global Actions (Delete, Verify, Modals) ---
         window.updateStatus = async function(id, newStatus) {
             try {
                 await update(ref(db, `registrations/${id}`), { status: newStatus });
@@ -488,7 +580,7 @@
             }
         };
 
-        let dbNodeToDelete = null; // keeps track of 'registrations' vs 'memories'
+        let dbNodeToDelete = null;
 
         window.triggerDelete = function(id, node) {
             currentDeleteKey = id;
