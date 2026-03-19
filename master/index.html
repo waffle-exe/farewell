@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal | Physics Farewell '26</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- jsPDF & AutoTable for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -50,14 +46,15 @@
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+        
+        .tab-active { border-color: #D4AF37; color: #D4AF37; }
+        .tab-inactive { border-color: transparent; color: #9ca3af; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <!-- Toast Notification System -->
     <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
 
-    <!-- Login Overlay -->
     <div id="loginScreen" class="fixed inset-0 z-[60] flex items-center justify-center bg-[#0a0a0a] transition-all duration-500">
         <div class="glass-panel p-8 sm:p-10 rounded-3xl max-w-sm w-full w-[90%] text-center border border-gold/20 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
             <div class="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-gold/30">
@@ -76,21 +73,18 @@
         </div>
     </div>
 
-    <!-- Main Dashboard (Hidden until logged in) -->
     <main id="dashboardScreen" class="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 hidden opacity-0 transition-opacity duration-500">
         
-        <!-- Header & Stats -->
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10 pb-6 border-b border-white/10">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
             <div>
                 <h1 class="text-3xl font-bold flex items-center gap-3">
                     <i class="ph ph-shield-check text-gold"></i>
                     Admin Dashboard
                 </h1>
-                <p class="text-gray-400 text-sm mt-1">Manage attendees and verifications</p>
+                <p class="text-gray-400 text-sm mt-1">Manage attendees and view memories</p>
             </div>
             
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-                <!-- PDF Download Button -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto" id="registrationControls">
                 <button onclick="downloadAcceptedPDF()" class="w-full sm:w-auto bg-gold/10 hover:bg-gold/20 border border-gold/30 text-gold font-semibold py-3 px-5 rounded-2xl transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap">
                     <i class="ph ph-file-pdf text-xl"></i>
                     Download Accepted List
@@ -112,42 +106,49 @@
             </div>
         </header>
 
-        <!-- Loader -->
+        <div class="flex gap-6 border-b border-white/10 mb-8">
+            <button onclick="switchTab('registrations')" id="tabBtnRegistrations" class="pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-active transition-all hover:text-white">
+                <i class="ph ph-users mr-1"></i> Registrations
+            </button>
+            <button onclick="switchTab('memories')" id="tabBtnMemories" class="pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-inactive hover:text-white transition-all">
+                <i class="ph ph-camera mr-1"></i> Uploaded Memories
+            </button>
+        </div>
+
         <div id="dataLoader" class="flex flex-col items-center justify-center py-20 text-gold">
             <i class="ph ph-spinner-gap animate-spin text-4xl mb-4"></i>
             <p class="text-sm text-gray-400">Syncing with database...</p>
         </div>
 
-        <!-- Data Grid -->
-        <div id="dataGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-            <!-- Cards will be injected here via JS -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-gray-500">
+            <i class="ph ph-ghost text-6xl mb-4 opacity-50"></i>
+            <p class="text-lg">No data found.</p>
         </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden flex-col items-center justify-center py-20 text-gray-500">
-            <i class="ph ph-users-three text-6xl mb-4 opacity-50"></i>
-            <p class="text-lg">No registrations found.</p>
-        </div>
+        <div id="registrationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            </div>
+
+        <div id="memoriesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            </div>
+        
     </main>
 
-    <!-- Image Preview Modal -->
     <div id="imageModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-md transition-all duration-300 modal-hidden p-4">
         <div class="relative max-w-3xl w-full">
             <button onclick="closeImageModal()" class="absolute -top-12 right-0 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors">
                 <i class="ph ph-x text-xl"></i>
             </button>
-            <img id="previewImg" src="" alt="Payment Receipt" class="w-full h-auto max-h-[80vh] object-contain rounded-xl border border-white/20 shadow-2xl bg-black">
+            <img id="previewImg" src="" alt="Preview" class="w-full h-auto max-h-[80vh] object-contain rounded-xl border border-white/20 shadow-2xl bg-black">
         </div>
     </div>
 
-    <!-- Custom Confirm Modal -->
     <div id="confirmModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 modal-hidden p-4">
         <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center border border-white/10 shadow-2xl">
             <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
                 <i class="ph ph-warning text-3xl"></i>
             </div>
             <h3 class="text-xl font-bold mb-2">Are you sure?</h3>
-            <p class="text-gray-400 text-sm mb-6">This action cannot be undone. The registration will be permanently deleted.</p>
+            <p class="text-gray-400 text-sm mb-6">This action cannot be undone. The record will be permanently deleted.</p>
             <div class="flex gap-3">
                 <button onclick="closeConfirmModal()" class="flex-1 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-white font-medium">Cancel</button>
                 <button id="confirmBtn" class="flex-1 py-3 px-4 rounded-xl bg-red-500 hover:bg-red-600 transition-colors text-white font-medium shadow-[0_0_15px_rgba(239,68,68,0.3)]">Delete</button>
@@ -155,12 +156,10 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // 1. Firebase Configuration (From original code)
         const firebaseConfig = {
             apiKey: "AIzaSyCut-Qi7scoHnjHyE8UBuN53PHWnMMKqSE",
             authDomain: "sitee-f6a0c.firebaseapp.com",
@@ -175,17 +174,20 @@
         const db = getDatabase(app);
 
         // UI Elements
-        const dataGrid = document.getElementById('dataGrid');
+        const registrationsGrid = document.getElementById('registrationsGrid');
+        const memoriesGrid = document.getElementById('memoriesGrid');
         const dataLoader = document.getElementById('dataLoader');
         const emptyState = document.getElementById('emptyState');
         const totalRevenueEl = document.getElementById('totalRevenue');
         const totalAcceptedEl = document.getElementById('totalAccepted');
         const dashboardScreen = document.getElementById('dashboardScreen');
         const loginScreen = document.getElementById('loginScreen');
+        const registrationControls = document.getElementById('registrationControls');
 
-        // Global state to store current key for deletion and all data for PDF export
+        // State
         let currentDeleteKey = null;
         let allRegistrations = [];
+        let currentTab = 'registrations';
 
         // --- Custom Toast Notification ---
         function showToast(message, type = 'success') {
@@ -203,13 +205,7 @@
             `;
             
             container.appendChild(toast);
-            
-            // Animate in
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-x-full', 'opacity-0');
-            });
-            
-            // Remove after 3s
+            requestAnimationFrame(() => toast.classList.remove('translate-x-full', 'opacity-0'));
             setTimeout(() => {
                 toast.classList.add('translate-x-full', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
@@ -225,11 +221,8 @@
                 setTimeout(() => {
                     loginScreen.style.display = 'none';
                     dashboardScreen.classList.remove('hidden');
-                    // slight delay for fade-in effect
-                    requestAnimationFrame(() => {
-                        dashboardScreen.classList.remove('opacity-0');
-                    });
-                    initDataListener();
+                    requestAnimationFrame(() => dashboardScreen.classList.remove('opacity-0'));
+                    initDataListeners();
                 }, 500);
                 showToast("Authentication successful");
             } else {
@@ -237,54 +230,131 @@
             }
         });
 
-        // --- Fetch & Render Data ---
-        function initDataListener() {
-            const registrationsRef = ref(db, 'registrations');
+        // --- Tabs Logic ---
+        window.switchTab = function(tabName) {
+            currentTab = tabName;
             
-            onValue(registrationsRef, (snapshot) => {
-                dataLoader.classList.add('hidden');
-                dataGrid.innerHTML = '';
-                allRegistrations = []; // Reset array
+            // UI Button Styling
+            const btnReg = document.getElementById('tabBtnRegistrations');
+            const btnMem = document.getElementById('tabBtnMemories');
+            
+            if (tabName === 'registrations') {
+                btnReg.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-active transition-all hover:text-white';
+                btnMem.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-inactive transition-all hover:text-white';
                 
-                if (!snapshot.exists()) {
-                    dataGrid.classList.add('hidden');
+                registrationControls.classList.remove('hidden');
+                memoriesGrid.classList.add('hidden');
+                
+                if (registrationsGrid.children.length > 0) {
+                    registrationsGrid.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+                } else {
+                    registrationsGrid.classList.add('hidden');
                     emptyState.classList.remove('hidden');
-                    totalRevenueEl.innerText = "₹0";
-                    totalAcceptedEl.innerText = "0";
-                    return;
                 }
+            } else {
+                btnMem.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-active transition-all hover:text-white';
+                btnReg.className = 'pb-3 px-2 text-sm font-semibold tracking-wide border-b-2 tab-inactive transition-all hover:text-white';
+                
+                registrationControls.classList.add('hidden'); // Hide revenue/pdf buttons
+                registrationsGrid.classList.add('hidden');
+                
+                if (memoriesGrid.children.length > 0) {
+                    memoriesGrid.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+                } else {
+                    memoriesGrid.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                }
+            }
+        };
 
-                dataGrid.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-
+        // --- Fetch Data ---
+        function initDataListeners() {
+            // Listen to Registrations
+            const registrationsRef = ref(db, 'registrations');
+            onValue(registrationsRef, (snapshot) => {
+                registrationsGrid.innerHTML = '';
+                allRegistrations = [];
                 let acceptedCount = 0;
-                const data = snapshot.val();
                 
-                // Convert to array and sort by newest first
-                const dataArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const dataArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                    dataArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    allRegistrations = dataArray;
+
+                    dataArray.forEach((entry) => {
+                        const status = entry.status || 'Pending';
+                        if (status === 'Accepted') acceptedCount++;
+                        registrationsGrid.appendChild(createRegistrationCard(entry, status));
+                    });
+                }
                 
-                allRegistrations = dataArray; // Store globally for PDF export
-
-                dataArray.forEach((entry) => {
-                    const status = entry.status || 'Pending';
-                    if (status === 'Accepted') acceptedCount++;
-
-                    dataGrid.appendChild(createCard(entry, status));
-                });
-
                 // Update Stats
                 totalAcceptedEl.innerText = acceptedCount;
                 totalRevenueEl.innerText = `₹${(acceptedCount * 1250).toLocaleString('en-IN')}`;
+                
+                // Re-evaluate empty state if currently on this tab
+                if (currentTab === 'registrations') {
+                    dataLoader.classList.add('hidden');
+                    if (registrationsGrid.children.length > 0) {
+                        registrationsGrid.classList.remove('hidden');
+                        emptyState.classList.add('hidden');
+                    } else {
+                        emptyState.classList.remove('hidden');
+                    }
+                }
+            });
+
+            // Listen to Memories
+            const memoriesRef = ref(db, 'memories');
+            onValue(memoriesRef, (snapshot) => {
+                memoriesGrid.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const memoriesData = snapshot.val();
+                    const groupedMemories = {};
+
+                    // Group by normalized friendName
+                    Object.keys(memoriesData).forEach(key => {
+                        const mem = memoriesData[key];
+                        const groupKey = (mem.friendName || 'Unknown').trim().toLowerCase();
+                        
+                        if (!groupedMemories[groupKey]) {
+                            groupedMemories[groupKey] = {
+                                displayName: mem.friendName.trim(), // Original case
+                                class: mem.friendClass || 'Unknown Class',
+                                photos: []
+                            };
+                        }
+                        groupedMemories[groupKey].photos.push({ id: key, ...mem });
+                    });
+
+                    // Render Grouped Cards
+                    Object.values(groupedMemories).forEach(group => {
+                        memoriesGrid.appendChild(createMemoryGroupCard(group));
+                    });
+                }
+
+                // Re-evaluate empty state if currently on this tab
+                if (currentTab === 'memories') {
+                    dataLoader.classList.add('hidden');
+                    if (memoriesGrid.children.length > 0) {
+                        memoriesGrid.classList.remove('hidden');
+                        emptyState.classList.add('hidden');
+                    } else {
+                        emptyState.classList.remove('hidden');
+                    }
+                }
             });
         }
 
-        // --- Card Generator ---
-        function createCard(data, currentStatus) {
+        // --- Card Generator: Registrations ---
+        function createRegistrationCard(data, currentStatus) {
             const card = document.createElement('div');
             card.className = "glass-panel rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors";
             
-            // Status Badge Config
             let badgeClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
             let badgeIcon = "ph-clock";
             if (currentStatus === 'Accepted') {
@@ -295,10 +365,7 @@
                 badgeIcon = "ph-x-circle";
             }
 
-            // Fallback Image
             const imgUrl = data.screenshotUrl || 'https://via.placeholder.com/150/111111/FFFFFF?text=No+Receipt';
-            
-            // Format Date
             const dateObj = new Date(data.timestamp);
             const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute:'2-digit' });
 
@@ -309,8 +376,7 @@
                         <p class="text-xs font-mono text-gold mt-1 tracking-widest">${data.ticketId || 'NO-ID'}</p>
                     </div>
                     <div class="px-2.5 py-1 rounded-full border text-[10px] uppercase tracking-wider font-semibold flex items-center gap-1 ${badgeClass}">
-                        <i class="ph ${badgeIcon}"></i>
-                        ${currentStatus}
+                        <i class="ph ${badgeIcon}"></i> ${currentStatus}
                     </div>
                 </div>
 
@@ -330,16 +396,14 @@
                 </div>
 
                 <div class="flex gap-3 mb-4">
-                    <!-- Thumbnail -->
                     <div class="w-16 h-16 rounded-lg overflow-hidden border border-white/10 cursor-pointer shrink-0 group/img relative"
                          onclick="openImageModal('${imgUrl}')">
-                        <img src="${imgUrl}" class="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300" alt="Receipt">
+                        <img src="${imgUrl}" class="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-300">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
                             <i class="ph ph-magnifying-glass-plus text-white"></i>
                         </div>
                     </div>
                     
-                    <!-- WhatsApp Button -->
                     <button onclick="sendWhatsApp('${data.phone}', '${data.name}', '${currentStatus}', '${data.ticketId}')" 
                             class="flex-1 flex flex-col items-center justify-center gap-1 rounded-lg border border-[#25D366]/30 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors">
                         <i class="ph ph-whatsapp-logo text-2xl"></i>
@@ -347,7 +411,6 @@
                     </button>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="grid grid-cols-3 gap-2 mt-auto pt-4 border-t border-white/5">
                     <button onclick="updateStatus('${data.id}', 'Accepted')" class="py-2 rounded-lg bg-white/5 hover:bg-green-500/20 hover:text-green-400 text-gray-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
                         <i class="ph ph-check"></i> Accept
@@ -355,7 +418,7 @@
                     <button onclick="updateStatus('${data.id}', 'Rejected')" class="py-2 rounded-lg bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
                         <i class="ph ph-x"></i> Reject
                     </button>
-                    <button onclick="triggerDelete('${data.id}')" class="py-2 rounded-lg bg-white/5 hover:bg-red-500 hover:text-white text-gray-400 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+                    <button onclick="triggerDelete('${data.id}', 'registrations')" class="py-2 rounded-lg bg-white/5 hover:bg-red-500 hover:text-white text-gray-400 text-xs font-semibold transition-colors flex items-center justify-center gap-1">
                         <i class="ph ph-trash"></i> Delete
                     </button>
                 </div>
@@ -363,8 +426,58 @@
             return card;
         }
 
-        // --- Global Actions (Attached to Window for HTML onclick) ---
+        // --- Card Generator: Memories (Grouped by Person) ---
+        function createMemoryGroupCard(group) {
+            const card = document.createElement('div');
+            card.className = "glass-panel rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col relative overflow-hidden";
+            
+            // Build the grid of photos for this specific person
+            let photosHTML = '';
+            group.photos.forEach(photo => {
+                const imgUrl = photo.imageUrl || '';
+                const uploader = photo.uploaderName || 'Anonymous';
+                const tag = photo.tagName || '';
+                const comment = photo.comment ? `title="${photo.comment.replace(/"/g, '&quot;')}"` : '';
 
+                photosHTML += `
+                    <div class="relative group/photo cursor-pointer flex flex-col" onclick="openImageModal('${imgUrl}')" ${comment}>
+                        <div class="w-full aspect-square rounded-lg overflow-hidden border border-white/10 mb-1 relative">
+                            <img src="${imgUrl}" class="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-300">
+                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity">
+                                <i class="ph ph-arrows-out text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 truncate">By: <span class="text-white">${uploader}</span></p>
+                        ${tag ? `<p class="text-[9px] text-gold truncate">#${tag}</p>` : ''}
+                        
+                        <button onclick="event.stopPropagation(); triggerDelete('${photo.id}', 'memories')" class="absolute top-1 right-1 w-6 h-6 bg-red-500/80 rounded-md text-white flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity hover:bg-red-600">
+                            <i class="ph ph-trash text-xs"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="mb-4 border-b border-white/10 pb-3 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white capitalize">${group.displayName}</h3>
+                        <p class="text-xs text-gold mt-0.5 flex items-center gap-1">
+                            <i class="ph ph-graduation-cap"></i> ${group.class}
+                        </p>
+                    </div>
+                    <div class="bg-white/5 px-3 py-1 rounded-full text-xs font-semibold text-gray-300 border border-white/10">
+                        <i class="ph ph-image mr-1"></i>${group.photos.length}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto pr-1 pb-1">
+                    ${photosHTML}
+                </div>
+            `;
+            return card;
+        }
+
+        // --- Global Actions ---
         window.updateStatus = async function(id, newStatus) {
             try {
                 await update(ref(db, `registrations/${id}`), { status: newStatus });
@@ -375,18 +488,21 @@
             }
         };
 
-        window.triggerDelete = function(id) {
+        let dbNodeToDelete = null; // keeps track of 'registrations' vs 'memories'
+
+        window.triggerDelete = function(id, node) {
             currentDeleteKey = id;
+            dbNodeToDelete = node;
             const modal = document.getElementById('confirmModal');
             modal.style.visibility = 'visible';
             requestAnimationFrame(() => modal.classList.remove('modal-hidden'));
         };
 
         document.getElementById('confirmBtn').addEventListener('click', async () => {
-            if (!currentDeleteKey) return;
+            if (!currentDeleteKey || !dbNodeToDelete) return;
             try {
-                await remove(ref(db, `registrations/${currentDeleteKey}`));
-                showToast("Registration deleted successfully");
+                await remove(ref(db, `${dbNodeToDelete}/${currentDeleteKey}`));
+                showToast("Record deleted successfully");
                 closeConfirmModal();
             } catch (error) {
                 showToast("Failed to delete", "error");
@@ -397,26 +513,27 @@
         window.closeConfirmModal = function() {
             const modal = document.getElementById('confirmModal');
             modal.classList.add('modal-hidden');
-            setTimeout(() => { modal.style.visibility = 'hidden'; currentDeleteKey = null; }, 300);
+            setTimeout(() => { 
+                modal.style.visibility = 'hidden'; 
+                currentDeleteKey = null; 
+                dbNodeToDelete = null;
+            }, 300);
         };
 
         window.sendWhatsApp = function(phone, name, status, ticketId) {
-            // Clean phone number (strip spaces/symbols except +)
             const cleanPhone = phone.replace(/[^\d+]/g, '');
-            
             let message = "";
             const safeName = name ? name.split(' ')[0] : 'there';
 
             if (status === 'Accepted') {
-                message = `Hello ${safeName}! ✨\n\nYour payment for the Physics Farewell Party '26 has been verified. Your Ticket ID is *${ticketId}*.\n\nWe look forward to hosting you on 11th April!`;
+                message = `Hello ${safeName}! ✨\n\nYour payment for the Physics Farewell Party '26 has been verified. Your Ticket ID is *${ticketId}*.\n\nWe look forward to hosting you!`;
             } else if (status === 'Rejected') {
                 message = `Hello ${safeName},\n\nWe encountered an issue verifying your payment for the Physics Farewell Party '26 (Ticket ID: ${ticketId}).\n\nPlease reach out to the organizing committee to resolve this.`;
             } else {
                 message = `Hello ${safeName},\n\nWe have received your registration for the Physics Farewell Party '26 (Ticket ID: ${ticketId}). Your payment verification is currently pending. We will update you shortly!`;
             }
 
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         };
 
         window.openImageModal = function(url) {
@@ -432,11 +549,8 @@
             setTimeout(() => { modal.style.visibility = 'hidden'; }, 300);
         };
 
-        // --- PDF Export Logic ---
         window.downloadAcceptedPDF = function() {
             const { jsPDF } = window.jspdf;
-            
-            // Filter only accepted candidates
             const acceptedUsers = allRegistrations.filter(user => user.status === 'Accepted');
 
             if (acceptedUsers.length === 0) {
@@ -445,8 +559,6 @@
             }
 
             const doc = new jsPDF();
-            
-            // PDF Header & Styling
             doc.setFontSize(18);
             doc.setTextColor(40);
             doc.text("Physics Farewell '26 - Accepted Guest List", 14, 22);
@@ -456,25 +568,15 @@
             doc.text(`Generated on: ${new Date().toLocaleString('en-GB')}`, 14, 30);
             doc.text(`Total Attendees: ${acceptedUsers.length}`, 14, 36);
 
-            // Prepare Table Headers and Data
             const tableColumn = ["Ticket ID", "Name", "Class", "Phone", "Registration Date"];
             const tableRows = [];
 
             acceptedUsers.forEach(user => {
                 const dateObj = new Date(user.timestamp);
                 const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                
-                const userData = [
-                    user.ticketId || 'N/A',
-                    user.name || 'Unknown',
-                    user.class || 'N/A',
-                    user.phone || 'N/A',
-                    dateStr
-                ];
-                tableRows.push(userData);
+                tableRows.push([ user.ticketId || 'N/A', user.name || 'Unknown', user.class || 'N/A', user.phone || 'N/A', dateStr ]);
             });
 
-            // Generate AutoTable
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
@@ -485,7 +587,6 @@
                 alternateRowStyles: { fillColor: [245, 245, 245] }
             });
 
-            // Save PDF
             doc.save("Physics_Farewell_Accepted_List.pdf");
             showToast("PDF downloaded successfully!");
         };
