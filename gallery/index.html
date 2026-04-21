@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Farewell '26 | Exclusive Gallery</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepSpace: '#0B0F19',
+                        nebula: '#1C2541',
+                        starlight: '#F8F9FA',
+                        goldLeaf: '#D4AF37',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0B0F19; color: #F8F9FA; font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(28, 37, 65, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gallery-img { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .gallery-img:hover { transform: scale(1.03); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); z-index: 10; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0F19; }
+        ::-webkit-scrollbar-thumb { background: #1C2541; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden antialiased">
+
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-30 animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-goldLeaf rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse-slow" style="animation-delay: 1.5s;"></div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col items-center justify-center">
+
+        <!-- ================= LOGIN SCREEN ================= -->
+        <div id="login-section" class="w-full max-w-md animate-fade-in flex flex-col items-center">
+            
+            <div class="w-20 h-20 bg-nebula rounded-2xl shadow-2xl flex items-center justify-center mb-6 border border-gray-700">
+                <i data-lucide="atom" class="text-goldLeaf w-10 h-10"></i>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-center mb-2 tracking-tight">Physics Farewell '26</h1>
+            <p class="text-gray-400 text-center mb-8">Secure Vault Access</p>
+
+            <div class="glass-panel p-8 rounded-2xl w-full shadow-2xl">
+                <p class="text-sm text-gray-300 mb-6 text-center" id="auth-instruction">
+                    Please authenticate to access the exclusive event gallery. Only registered guests may enter.
+                </p>
+
+                <!-- STEP 1: CREDENTIALS FORM -->
+                <form id="auth-form" class="space-y-5">
+                    <div>
+                        <label for="credentials" class="block text-sm font-medium text-gray-400 mb-1">Ticket ID or Phone Number</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="lock" class="h-5 w-5 text-gray-500"></i>
+                            </div>
+                            <input type="text" id="credentials" required
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-xl leading-5 bg-[#0f1423] text-starlight placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-goldLeaf focus:border-goldLeaf transition-colors sm:text-sm"
+                                placeholder="e.g., PHY-9202 or 9876543210">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="login-btn"
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-[#0B0F19] bg-goldLeaf hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0B0F19] focus:ring-goldLeaf transition-all">
+                        <span>Verify Identity</span>
+                        <i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>
+                    </button>
+                </form>
+
+                <!-- STEP 2: OTP FORM (Initially Hidden) -->
+                <form id="otp-form" class="space-y-5 hidden animate-fade-in">
+                    <div>
+                        <label for="otp-input" class="block text-sm font-medium text-gray-400 mb-1">Enter 6-Digit Security Code</label>
+                        <p class="text-xs text-green-400 mb-3" id="otp-sent-message"></p>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="key" class="h-5 w-5 text-gray-500"></i>
+                            </div>
+                            <input type="text" id="otp-input" required maxlength="6" pattern="\d{6}"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-xl leading-5 bg-[#0f1423] text-starlight placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-goldLeaf focus:border-goldLeaf transition-colors sm:text-sm text-center tracking-widest font-bold"
+                                placeholder="• • • • • •">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button type="button" id="back-btn"
+                            class="w-1/3 flex justify-center items-center py-3 px-4 border border-gray-600 rounded-xl shadow-sm text-sm font-bold text-gray-300 bg-transparent hover:bg-gray-800 transition-all">
+                            <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+                        </button>
+                        <button type="submit" id="verify-otp-btn"
+                            class="w-2/3 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-[#0B0F19] bg-goldLeaf hover:bg-yellow-500 transition-all">
+                            <span>Unlock Gallery</span>
+                            <i data-lucide="unlock" class="ml-2 w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Status Message -->
+                <div id="status-message" class="hidden mt-4 text-center text-sm font-medium rounded-lg p-3"></div>
+            </div>
+            
+            <div class="mt-8 text-xs text-gray-600 flex items-center space-x-1">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span>Firebase Real Verification Enabled</span>
+            </div>
+        </div>
+
+        <!-- ================= GALLERY SCREEN (Hidden by default) ================= -->
+        <div id="gallery-section" class="hidden w-full max-w-6xl animate-fade-in">
+            
+            <!-- Header -->
+            <header class="flex flex-col md:flex-row items-center justify-between mb-10 pb-6 border-b border-gray-800 gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-nebula rounded-full flex items-center justify-center border border-gray-700">
+                        <i data-lucide="atom" class="text-goldLeaf w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Event Memories</h2>
+                        <p class="text-gray-400 text-sm">Physics Farewell 2026 • 48 Attendees</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4 bg-nebula rounded-full pr-2 pl-4 py-1.5 border border-gray-700">
+                    <span class="text-sm font-medium text-gray-300" id="user-greeting">Welcome, Guest!</span>
+                    <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors" title="Secure Logout">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="photo-grid">
+                <!-- Images injected via JS -->
+            </div>
+            
+            <!-- Footer -->
+            <footer class="mt-16 text-center text-gray-500 text-sm pb-8">
+                <p>Generated securely on 08/04/2026. Do not share this private link.</p>
+            </footer>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4eoofAdY4DrW-VKvfGJl5aNv2hoCTn4c",
+            authDomain: "iist-fd6e8.firebaseapp.com",
+            databaseURL: "https://iist-fd6e8-default-rtdb.firebaseio.com",
+            projectId: "iist-fd6e8",
+            storageBucket: "iist-fd6e8.firebasestorage.app",
+            messagingSenderId: "692699808449",
+            appId: "1:692699808449:web:120c8941a940d071f24a40",
+            measurementId: "G-GPFG8LWF2H"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- THE SECURE DATABASE ---
+        // Extracted directly from the provided PDF. 
+        // Phone numbers have been cleaned down to 10 digits in the logic for exact matching.
+        const authorizedDatabase = [
+            { id: "PHY-9202", name: "Yuvraj Singh", phone: "7973972652" },
+            { id: "PHY-9465", name: "Naresh Aneja", phone: "9467626419" },
+            { id: "PHY-6852", name: "Mandeep Kaur", phone: "9592530250" },
+            { id: "PHY-2217", name: "Parampal Kaur", phone: "9478794945" },
+            { id: "PHY-6560", name: "Sukhjeet Kaur", phone: "7986320110" },
+            { id: "PHY-6108", name: "Shehnajpreet Kaur", phone: "9877204743" },
+            { id: "PHY-5232", name: "Karishma Arora", phone: "9056373168" },
+            { id: "PHY-4503", name: "Payal Parmar", phone: "7973468826" },
+            { id: "PHY-3067", name: "Manisha", phone: "7901871343" },
+            { id: "PHY-4922", name: "Diksha Sharma", phone: "9464489600" },
+            { id: "PHY-3578", name: "Pavneet Kaur", phone: "6284325002" },
+            { id: "PHY-4351", name: "Sejal Sharma", phone: "8360912293" },
+            { id: "PHY-8320", name: "Preety Angurala", phone: "8054992544" },
+            { id: "PHY-3366", name: "Harsimran Kaur", phone: "7888450361" },
+            { id: "PHY-5332", name: "Jaishree", phone: "7087145681" },
+            { id: "PHY-5089", name: "Vishakha", phone: "9417218356" },
+            { id: "PHY-6308", name: "Harman", phone: "9914604550" },
+            { id: "PHY-3399", name: "Rashi Kaushal", phone: "7814324844" },
+            { id: "PHY-4946", name: "Nandini Kalra", phone: "6283578409" },
+            { id: "PHY-9207", name: "Tamanna", phone: "7814407425" },
+            { id: "PHY-8731", name: "Prachi", phone: "8837651925" },
+            { id: "PHY-3210", name: "Bhoomi", phone: "9501477270" },
+            { id: "PHY-9749", name: "Amitoj Singh", phone: "7087313115" },
+            { id: "PHY-1104", name: "Kanwalpreet Kaur", phone: "9779697053" },
+            { id: "PHY-4778", name: "Sukhman Kaur", phone: "9779697053" },
+            { id: "PHY-1422", name: "Nandini Thakur", phone: "6284799314" },
+            { id: "PHY-1635", name: "Prachee Sharma", phone: "6283114108" },
+            { id: "PHY-5407", name: "Gurleen Kaur", phone: "6280553319" },
+            { id: "PHY-2003", name: "Muskan", phone: "7740072979" },
+            { id: "PHY-9043", name: "Harshita", phone: "7696942632" },
+            { id: "PHY-1853", name: "Simranpreet Singh", phone: "9700780019" },
+            { id: "PHY-6299", name: "Vinamr", phone: "9779875080" },
+            { id: "PHY-4231", name: "Mehak", phone: "7986605844" },
+            { id: "PHY-2355", name: "Amitoj Kaur", phone: "9877735456" },
+            { id: "PHY-4681", name: "Manjeet Saini", phone: "8360749929" },
+            { id: "PHY-7823", name: "Ramanpreet Kaur", phone: "7589487348" },
+            { id: "PHY-4548", name: "Mansi", phone: "8847280414" },
+            { id: "PHY-6973", name: "Anchal", phone: "6280651417" },
+            { id: "PHY-7752", name: "Abhiraj Singh", phone: "9053921477" },
+            { id: "PHY-6588", name: "Navjot Kaur", phone: "9915462339" },
+            { id: "PHY-7935", name: "Vanshika Sharma", phone: "9592757393" },
+            { id: "PHY-6486", name: "Mahim", phone: "8360162448" },
+            { id: "PHY-5766", name: "Aniket", phone: "7696751915" },
+            { id: "PHY-5908", name: "Uday Bhatia", phone: "9417136437" },
+            { id: "PHY-6321", name: "Jasmeen Bhinder", phone: "9888314187" },
+            { id: "PHY-9198", name: "Jaismeen Kaur", phone: "8427258470" },
+            { id: "PHY-8900", name: "Riya Thakur", phone: "9878727477" },
+            { id: "PHY-3798", name: "Palak", phone: "9814590608" }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const loginSection = document.getElementById('login-section');
+        const gallerySection = document.getElementById('gallery-section');
+        const authForm = document.getElementById('auth-form');
+        const otpForm = document.getElementById('otp-form');
+        const credentialsInput = document.getElementById('credentials');
+        const otpInput = document.getElementById('otp-input');
+        const statusMessage = document.getElementById('status-message');
+        const authInstruction = document.getElementById('auth-instruction');
+        const otpSentMessage = document.getElementById('otp-sent-message');
+        const userGreeting = document.getElementById('user-greeting');
+        const logoutBtn = document.getElementById('logout-btn');
+        const backBtn = document.getElementById('back-btn');
+        const photoGrid = document.getElementById('photo-grid');
+        const loginBtn = document.getElementById('login-btn');
+
+        // State variables for OTP
+        let pendingGuest = null;
+        let windowConfirmationResult = null;
+
+        // --- SECURE ALGORITHM LOGIC ---
+        // Normalizes input to easily compare messy phone entries or varying ID formats
+        function cleanString(str) {
+            return str.replace(/[\s\-\+\(\)]/g, '').toLowerCase();
+        }
+
+        function extractLast10Digits(str) {
+            const numbersOnly = str.replace(/\D/g, '');
+            if (numbersOnly.length >= 10) {
+                return numbersOnly.slice(-10);
+            }
+            return numbersOnly;
+        }
+
+        function verifyCredentials(input) {
+            const rawClean = cleanString(input);
+            const phoneCheck = extractLast10Digits(input);
+
+            for (let i = 0; i < authorizedDatabase.length; i++) {
+                const guest = authorizedDatabase[i];
+                const cleanGuestId = cleanString(guest.id);
+                const cleanGuestPhone = extractLast10Digits(guest.phone);
+
+                // Match exact Ticket ID OR 10-digit phone
+                if (rawClean === cleanGuestId || (phoneCheck.length === 10 && phoneCheck === cleanGuestPhone)) {
+                    return guest;
+                }
+            }
+            return null;
+        }
+
+        // --- FIREBASE RECAPTCHA SETUP ---
+        function setupRecaptcha() {
+            if (!window.recaptchaVerifier) {
+                // Attach invisible reCAPTCHA to the login button
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'login-btn', {
+                    'size': 'invisible',
+                    'callback': (response) => {
+                        // reCAPTCHA solved automatically
+                    }
+                });
+            }
+        }
+
+        // --- EVENT LISTENERS ---
+        // Step 1: Request Real OTP via Firebase
+        authForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputVal = credentialsInput.value.trim();
+            
+            if (!inputVal) return;
+
+            loginBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin mr-2 w-5 h-5"></i> Sending SMS...`;
+            lucide.createIcons();
+            loginBtn.disabled = true;
+            statusMessage.classList.add('hidden');
+
+            const validGuest = verifyCredentials(inputVal);
+
+            if (validGuest) {
+                pendingGuest = validGuest;
+                // Prepend +91 (India Code) for Firebase formatting rules
+                const phoneNumber = "+91" + extractLast10Digits(validGuest.phone);
+                
+                setupRecaptcha();
+
+                signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+                    .then((confirmationResult) => {
+                        windowConfirmationResult = confirmationResult;
+                        
+                        const maskedPhone = validGuest.phone.slice(0, 3) + '****' + validGuest.phone.slice(-3);
+                        otpSentMessage.textContent = `Real OTP sent to +91 ${maskedPhone}`;
+                        
+                        authForm.classList.add('hidden');
+                        otpForm.classList.remove('hidden');
+                        authInstruction.classList.add('hidden');
+                        
+                        // Reset button UI
+                        loginBtn.innerHTML = `<span>Verify Identity</span><i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>`;
+                        lucide.createIcons();
+                        loginBtn.disabled = false;
+                    })
+                    .catch((error) => {
+                        console.error("SMS Error:", error);
+                        statusMessage.textContent = "Failed to send SMS. Ensure Firebase Phone Auth is enabled.";
+                        statusMessage.className = "mt-4 text-center text-sm font-medium rounded-lg p-3 bg-red-900/50 text-red-300 border border-red-800 block";
+                        
+                        if (window.recaptchaVerifier) {
+                            window.recaptchaVerifier.render().then(function(widgetId) {
+                                grecaptcha.reset(widgetId);
+                            });
+                        }
+                        
+                        loginBtn.innerHTML = `<span>Verify Identity</span><i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>`;
+                        lucide.createIcons();
+                        loginBtn.disabled = false;
+                    });
+                
+            } else {
+                // Auth Failed
+                statusMessage.textContent = "Access Denied: Ticket ID or Phone number not found on guest list.";
+                statusMessage.className = "mt-4 text-center text-sm font-medium rounded-lg p-3 bg-red-900/50 text-red-300 border border-red-800 block";
+                
+                loginBtn.innerHTML = `<span>Verify Identity</span><i data-lucide="arrow-right" class="ml-2 w-4 h-4"></i>`;
+                lucide.createIcons();
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Step 2: Verify Real OTP
+        otpForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userOTP = otpInput.value.trim();
+            statusMessage.classList.add('hidden');
+            
+            const verifyBtn = document.getElementById('verify-otp-btn');
+            verifyBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin mr-2 w-4 h-4"></i> Checking...`;
+            lucide.createIcons();
+            verifyBtn.disabled = true;
+
+            if (windowConfirmationResult) {
+                windowConfirmationResult.confirm(userOTP).then((result) => {
+                    // Success!
+                    sessionStorage.setItem('physicsFarewellAuth', 'true');
+                    sessionStorage.setItem('physicsFarewellUser', pendingGuest.name);
+                    showGallery(pendingGuest.name);
+                    
+                    verifyBtn.innerHTML = `<span>Unlock Gallery</span><i data-lucide="unlock" class="ml-2 w-4 h-4"></i>`;
+                    lucide.createIcons();
+                    verifyBtn.disabled = false;
+                }).catch((error) => {
+                    // Fail
+                    console.error("OTP Error:", error);
+                    statusMessage.textContent = "Incorrect OTP or expired. Please try again.";
+                    statusMessage.className = "mt-4 text-center text-sm font-medium rounded-lg p-3 bg-red-900/50 text-red-300 border border-red-800 block";
+                    
+                    verifyBtn.innerHTML = `<span>Unlock Gallery</span><i data-lucide="unlock" class="ml-2 w-4 h-4"></i>`;
+                    lucide.createIcons();
+                    verifyBtn.disabled = false;
+                });
+            }
+        });
+
+        // Go Back from OTP screen
+        backBtn.addEventListener('click', function() {
+            otpForm.classList.add('hidden');
+            authForm.classList.remove('hidden');
+            authInstruction.classList.remove('hidden');
+            statusMessage.classList.add('hidden');
+            otpInput.value = '';
+            pendingGuest = null;
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            signOut(auth).then(() => {
+                sessionStorage.removeItem('physicsFarewellAuth');
+                sessionStorage.removeItem('physicsFarewellUser');
+                
+                gallerySection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                authForm.classList.remove('hidden');
+                otpForm.classList.add('hidden');
+                authInstruction.classList.remove('hidden');
+                
+                credentialsInput.value = '';
+                otpInput.value = '';
+                statusMessage.classList.add('hidden');
+                pendingGuest = null;
+                windowConfirmationResult = null;
+            });
+        });
+
+        // --- RENDER GALLERY ---
+        function showGallery(userName) {
+            loginSection.classList.add('hidden');
+            gallerySection.classList.remove('hidden');
+            
+            // Extract First name
+            const firstName = userName.split(' ')[0];
+            // Title Case
+            const formattedName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+            
+            userGreeting.textContent = `Welcome, ${formattedName}!`;
+            
+            populateImages();
+        }
+
+        function populateImages() {
+            // Using placeholder images for the demo
+            // In a real scenario, you'd replace these URLs with links to the actual event photos
+            const mockImages = [
+                "https://images.unsplash.com/photo-1523580494112-071dcb849ae4?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1531686264889-56fdcabd163f?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1551818255-e6e10975bc17?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80",
+                "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+            ];
+
+            photoGrid.innerHTML = ''; // clear grid
+            
+            mockImages.forEach((url, index) => {
+                const item = document.createElement('div');
+                item.className = 'glass-panel rounded-2xl overflow-hidden aspect-square gallery-img relative group cursor-pointer';
+                item.innerHTML = `
+                    <img src="${url}" alt="Farewell Photo ${index+1}" class="w-full h-full object-cover" loading="lazy">
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <button class="bg-goldLeaf text-deepSpace px-4 py-2 rounded-full font-bold text-sm transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                            View Full
+                        </button>
+                    </div>
+                `;
+                photoGrid.appendChild(item);
+            });
+        }
+
+        // --- INIT CHECKS ---
+        // Check if user refreshed page but is already authenticated this session
+        if (sessionStorage.getItem('physicsFarewellAuth') === 'true') {
+            const user = sessionStorage.getItem('physicsFarewellUser') || 'Guest';
+            showGallery(user);
+        }
+
+    </script>
+</body>
+</html>
