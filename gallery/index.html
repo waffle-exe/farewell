@@ -95,56 +95,69 @@
     </div>
 
     <script>
-        // Data Extracted directly from the provided PDF list (48 attendees)
+        // Data Extracted directly from the provided PDF list (61 attendees)
         const guestData = [
+            { id: "PHY-8017", name: "Bhawna", phone: "79730 66839" },
+            { id: "PHY-2686", name: "Anpreet kaur", phone: "73409 96014" },
+            { id: "PHY-3473", name: "Jasleen Kaur", phone: "9888876849" },
+            { id: "PHY-6103", name: "Harmandeep Singh", phone: "7889036471" },
+            { id: "PHY-2346", name: "Harkirat Singh", phone: "7009281619" },
+            { id: "PHY-8214", name: "Sukhmanpreet kaur", phone: "+91 98777 86827" },
+            { id: "PHY-2556", name: "Nimratbir kaur Sandhu", phone: "9878081207" },
+            { id: "PHY-7357", name: "Ritisha", phone: "7814141525" },
+            { id: "PHY-6679", name: "Jaideep singh", phone: "8360277113" },
+            { id: "PHY-1533", name: "Armanpreet singh", phone: "+91 78141 91238" },
+            { id: "PHY-9899", name: "Harmesh Singh", phone: "7652940667" },
+            { id: "PHY-7758", name: "Raveen Sharma", phone: "7814202519" },
+            { id: "PHY-8543", name: "Chetna Singh", phone: "84370 44682" },
+            { id: "PHY-9749", name: "Amitoj Singh", phone: "7087313115" },
+            { id: "PHY-1104", name: "Kanwalpreet kaur", phone: "9779697053" },
+            { id: "PHY-4778", name: "Sukhman kaur", phone: "9779697053" },
+            { id: "PHY-3399", name: "Rashi Kaushal", phone: "7814324844" },
             { id: "PHY-9202", name: "Yuvraj singh", phone: "7973972652" },
+            { id: "PHY-1422", name: "Nandini thakur", phone: "6284799314" },
+            { id: "PHY-1635", name: "Prachee sharma", phone: "6283114108" },
+            { id: "PHY-9198", name: "Jaismeen Kaur", phone: "8427258470" },
+            { id: "PHY-8900", name: "Riya Thakur", phone: "9878727477" },
+            { id: "PHY-3798", name: "Palak", phone: "9814590608" },
+            { id: "PHY-5407", name: "Gurleen Kaur", phone: "6280553319" },
+            { id: "PHY-6321", name: "Jasmeen Bhinder", phone: "9888314187" },
+            { id: "PHY-2003", name: "Muskan", phone: "7740072979" },
+            { id: "PHY-9043", name: "Harshita", phone: "+91 76969 42632" },
             { id: "PHY-9465", name: "Naresh Aneja", phone: "9467626419" },
+            { id: "PHY-1853", name: "Simranpreet Singh", phone: "9700780019" },
+            { id: "PHY-6299", name: "Vinamr", phone: "97798 75080" },
+            { id: "PHY-6588", name: "Navjot Kaur", phone: "9915462339" },
+            { id: "PHY-4231", name: "Mehak", phone: "7986605844" },
+            { id: "PHY-2355", name: "Amitoj kaur", phone: "9877735456" },
             { id: "PHY-6852", name: "Mandeep kaur", phone: "9592530250" },
+            { id: "PHY-4681", name: "Manjeet Saini", phone: "+918360749929" },
             { id: "PHY-2217", name: "Parampal Kaur", phone: "9478794945" },
+            { id: "PHY-7935", name: "Vanshika Sharma", phone: "9592757393" },
+            { id: "PHY-7823", name: "Ramanpreet kaur", phone: "7589487348" },
+            { id: "PHY-4548", name: "Mansi", phone: "+91 88472 80414" },
+            { id: "PHY-6973", name: "Anchal", phone: "6280651417" },
+            { id: "PHY-4946", name: "Nandini kalra", phone: "6283578409" },
+            { id: "PHY-7752", name: "ABHIRAJ SINGH", phone: "91+9053921477" },
             { id: "PHY-6560", name: "Sukhjeet Kaur", phone: "7986320110" },
             { id: "PHY-6108", name: "Shehnajpreet kaur", phone: "9877204743" },
             { id: "PHY-5232", name: "Karishma Arora", phone: "9056373168" },
+            { id: "PHY-6486", name: "Mahim", phone: "8360162448" },
             { id: "PHY-4503", name: "Payal Parmar", phone: "7973468826" },
             { id: "PHY-3067", name: "Manisha", phone: "7901871343" },
+            { id: "PHY-9207", name: "Tamanna", phone: "7814407425" },
             { id: "PHY-4922", name: "Diksha Sharma", phone: "9464489600" },
+            { id: "PHY-8731", name: "Prachi", phone: "8837651925" },
+            { id: "PHY-3210", name: "Bhoomi", phone: "9501477270" },
             { id: "PHY-3578", name: "Pavneet Kaur", phone: "6284325002" },
             { id: "PHY-4351", name: "Sejal Sharma", phone: "8360912293" },
             { id: "PHY-8320", name: "Preety Angurala", phone: "8054992544" },
             { id: "PHY-3366", name: "Harsimran Kaur", phone: "7888450361" },
-            { id: "PHY-5332", name: "Jaishree", phone: "7087145681" },
-            { id: "PHY-5089", name: "Vishakha", phone: "9417218356" },
-            { id: "PHY-6308", name: "Harman", phone: "9914604550" },
-            { id: "PHY-3399", name: "Rashi Kaushal", phone: "7814324844" },
-            { id: "PHY-4946", name: "Nandini kalra", phone: "6283578409" },
-            { id: "PHY-9207", name: "Tamanna", phone: "7814407425" },
-            { id: "PHY-8731", name: "Prachi", phone: "8837651925" },
-            { id: "PHY-3210", name: "Bhoomi", phone: "9501477270" },
-            { id: "PHY-9749", name: "Amitoj Singh", phone: "7087313115" },
-            { id: "PHY-1104", name: "Kanwalpreet kaur", phone: "9779697053" },
-            { id: "PHY-4778", name: "Sukhman kaur", phone: "9779697053" },
-            { id: "PHY-1422", name: "Nandini thakur", phone: "6284799314" },
-            { id: "PHY-1635", name: "Prachee sharma", phone: "6283114108" },
-            { id: "PHY-5407", name: "Gurleen Kaur", phone: "6280553319" },
-            { id: "PHY-2003", name: "Muskan", phone: "7740072979" },
-            { id: "PHY-9043", name: "Harshita", phone: "7696942632" },
-            { id: "PHY-1853", name: "Simranpreet Singh", phone: "9700780019" },
-            { id: "PHY-6299", name: "Vinamr", phone: "9779875080" },
-            { id: "PHY-4231", name: "Mehak", phone: "7986605844" },
-            { id: "PHY-2355", name: "Amitoj kaur", phone: "9877735456" },
-            { id: "PHY-4681", name: "Manjeet Saini", phone: "8360749929" },
-            { id: "PHY-7823", name: "Ramanpreet kaur", phone: "7589487348" },
-            { id: "PHY-4548", name: "Mansi", phone: "8847280414" },
-            { id: "PHY-6973", name: "Anchal", phone: "6280651417" },
-            { id: "PHY-7752", name: "ABHIRAJ SINGH", phone: "9053921477" },
-            { id: "PHY-6588", name: "Navjot Kaur", phone: "9915462339" },
-            { id: "PHY-7935", name: "Vanshika Sharma", phone: "9592757393" },
-            { id: "PHY-6486", name: "Mahim", phone: "8360162448" },
             { id: "PHY-5766", name: "Aniket", phone: "7696751915" },
             { id: "PHY-5908", name: "Uday Bhatia", phone: "9417136437" },
-            { id: "PHY-6321", name: "Jasmeen Bhinder", phone: "9888314187" },
-            { id: "PHY-9198", name: "Jaismeen Kaur", phone: "8427258470" },
-            { id: "PHY-8900", name: "Riya Thakur", phone: "9878727477" },
-            { id: "PHY-3798", name: "Palak", phone: "9814590608" }
+            { id: "PHY-5332", name: "Jaishree", phone: "+917087145681" },
+            { id: "PHY-5089", name: "Vishakha", phone: "9417218356" },
+            { id: "PHY-6308", name: "Harman", phone: "+919914604550" }
         ];
 
         // Helper function to normalize inputted phone numbers (removes spaces, +, dashes, and country codes)
@@ -166,28 +179,28 @@
             if (sName === iName) return true;
             
             // Scenario 2: First Name only match
-        const sFirst = sName.split(' ')[0];
-        if (iName === sFirst) return true;
+            const sFirst = sName.split(' ')[0];
+            if (iName === sFirst) return true;
 
-        return false;
-    }
-
-    document.getElementById('authForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        let rawId = document.getElementById('ticketId').value.trim().toUpperCase();
-        // Automatically handle if they typed the number only, or accidentally included PHY
-        if (rawId.startsWith('PHY')) {
-            rawId = rawId.replace('PHY', '').replace('-', '').trim();
+            return false;
         }
-        const inputId = `PHY-${rawId}`;
-        
-        const inputName = document.getElementById('name').value;
-        const inputPhone = normalizePhone(document.getElementById('phone').value.trim());
-        const errorMsg = document.getElementById('errorMessage');
 
-        // Search for the user matching all three criteria
-        const authenticatedUser = guestData.find(guest => {
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let rawId = document.getElementById('ticketId').value.trim().toUpperCase();
+            // Automatically handle if they typed the number only, or accidentally included PHY
+            if (rawId.startsWith('PHY')) {
+                rawId = rawId.replace('PHY', '').replace('-', '').trim();
+            }
+            const inputId = `PHY-${rawId}`;
+            
+            const inputName = document.getElementById('name').value;
+            const inputPhone = normalizePhone(document.getElementById('phone').value.trim());
+            const errorMsg = document.getElementById('errorMessage');
+
+            // Search for the user matching all three criteria
+            const authenticatedUser = guestData.find(guest => {
                 const guestId = guest.id.toUpperCase();
                 const guestPhone = normalizePhone(guest.phone);
                 
